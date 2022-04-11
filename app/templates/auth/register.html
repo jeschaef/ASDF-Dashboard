@@ -1,0 +1,26 @@
+{%- extends "auth/auth_base.html" %}
+
+{% block title %}Register{% endblock %}
+
+
+{% block formcontent %}
+<div class="form-floating ">
+    {{ form.username(class='form-control') }}
+    {{ form.username.label }}
+</div>
+<div class="form-floating">
+    {{ form.email(class='form-control') }}
+    {{ form.email.label }}
+</div>
+<div class="form-floating">
+    {{ form.password(class='form-control') }}
+    {{ form.password.label }}
+</div>
+<div class="form-floating">
+    {{ form.confirm(class='form-control') }}
+    {{ form.confirm.label }}
+</div>
+
+{{ form.submit(class="w-100 btn btn-lg btn-primary") }}
+
+{% endblock %}
