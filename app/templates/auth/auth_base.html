@@ -1,5 +1,9 @@
 {%- extends "base.html" %}
 
+<!-- Import form rendering macro -->
+{% from '_formhelpers.html' import render_field %}
+
+<!-- Styles -->
 {% block styles %}
     {{ super() }}
 
@@ -33,6 +37,16 @@
 <div class="form-auth">
     <form method="POST">
         {{ form.csrf_token() }}
+
+<!--        {% for field, errors in form.errors.items() %}-->
+<!--            <div class="alert alert-error alert-dismissible fade show" role="alert">-->
+<!--                {{ form[field].label }}: {{ ', '.join(errors) }}-->
+<!--                <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
+<!--                    <span aria-hidden="true">&times;</span>-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        {% endfor %}-->
+
         <img class="mb-4" src="" alt="" width="72" height="57">
         <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 

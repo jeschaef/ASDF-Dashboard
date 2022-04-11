@@ -4,19 +4,15 @@
 
 
 {% block formcontent %}
-<div class="form-floating">
-    {{ form.email(class='form-control', placeholder='name@example.com') }}
-    {{ form.email.label }}
-</div>
-<div class="form-floating">
-    {{ form.password(class='form-control') }}
-    {{ form.password.label }}
-</div>
 
-<div class="checkbox mb-3">
+{{ render_field(form.email, form.is_submitted(), class='form-floating') }}
+{{ render_field(form.password, form.is_submitted(), class='form-floating') }}
+
+<div class="checkbox mb-3 ">
     {{ form.remember_me }}
     {{ form.remember_me.label }}
 </div>
+
 {{ form.submit(class="w-100 btn btn-lg btn-primary") }}
 <!--        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>-->
 

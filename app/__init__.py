@@ -5,7 +5,7 @@ import os
 from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 
-from app.login import login_mngr
+from app.auth import login_mngr
 from app.mail import mail
 from app.db import db
 
@@ -23,22 +23,27 @@ def create_app(test_config=None):
     # instead of the application root
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',  # TODO setup appropriately
+        SECRET_KEY='dev',  # TODO setup appropriate secret
         # DATABASE=os.path.join(app.instance_path, 'app.sqlite'),
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
-        TESTING=True
+        SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        TESTING=True,
     )
+    app_root = os.path.dirname(app.instance_path)  # App root folder
+
+    # ensure log folder exists
+    try:
+        os.makedirs(os.path.join(app_root, "log"))
+    except OSError:
+        pass
 
     # Configure logging
-    # log_conf_path = str((get_project_root() / "conf") / "logging.conf")
-    # log_file_path = str((get_project_root() / "log") / "demo.log")
-    log_conf_path = "conf/logging.conf"
-    log_file_path = "log/app.log"
+    log_conf_path = os.path.join(app_root, "conf", "logging.conf")
+    log_file_path = os.path.join(app_root, "log", "demo.log")
 
     logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path})
     log = app.logger
     log.debug('Configured logging')
-
 
     # Debug mode
     app.debug = True
@@ -51,7 +56,7 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
-    # ensure the instance folder exists
+    # ensure the instance folder exists (required for database setup)
     try:
         os.makedirs(app.instance_path)
     except OSError:
@@ -74,6 +79,7 @@ def create_app(test_config=None):
 
 if __name__ == '__main__':
     app = create_app()
+    db.drop_all(app=app)
     db.create_all(app=app)  # create db
     app.logger.debug("Created db")
     app.run()

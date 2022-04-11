@@ -4,22 +4,11 @@
 
 
 {% block formcontent %}
-<div class="form-floating ">
-    {{ form.username(class='form-control') }}
-    {{ form.username.label }}
-</div>
-<div class="form-floating">
-    {{ form.email(class='form-control') }}
-    {{ form.email.label }}
-</div>
-<div class="form-floating">
-    {{ form.password(class='form-control') }}
-    {{ form.password.label }}
-</div>
-<div class="form-floating">
-    {{ form.confirm(class='form-control') }}
-    {{ form.confirm.label }}
-</div>
+
+{{ render_field(form.username, form.is_submitted(), class='form-floating') }}
+{{ render_field(form.email, form.is_submitted(), class='form-floating') }}
+{{ render_field(form.password, form.is_submitted(), class='form-floating') }}
+{{ render_field(form.confirm, form.is_submitted(), class='form-floating') }}
 
 {{ form.submit(class="w-100 btn btn-lg btn-primary") }}
 
