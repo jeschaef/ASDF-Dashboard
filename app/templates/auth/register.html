@@ -12,4 +12,9 @@
 
 {{ form.submit(class="w-100 btn btn-lg btn-primary") }}
 
+
+<div>
+    Already have an account? <a href="{{ url_for('auth.login') }}">Login</a>
+</div>
+
 {% endblock %}

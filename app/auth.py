@@ -5,16 +5,19 @@ from flask_login import LoginManager
 
 from app.model import User
 
+# Login manager
 login_mngr = LoginManager()
+login_mngr.login_view = 'auth.login'
+# login_mngr.login_message = 'Hello, you need login'    # flashed message
+login_mngr.session_protection = "strong"
+
+# Logging
 log = logging.getLogger()
 
 
 @login_mngr.user_loader
-def load_user(id):
-    log.debug(f"Retrieve user with id {id}")
-    user = User.query.get(id)
-    log.debug(f"Got user {user}")
-    return "User"
+def load_user(session_token):
+    return User.query.filter_by(session_token=session_token).first()
 
 
 def get_hashed_password(plain_text_password: str or bytes) -> bytes:
@@ -27,6 +30,7 @@ def get_hashed_password(plain_text_password: str or bytes) -> bytes:
     if isinstance(plain_text_password, str):
         plain_text_password = plain_text_password.encode('utf-8')
     return bcrypt.hashpw(plain_text_password, bcrypt.gensalt())
+
 
 def verify_password(plain_text_password: str or bytes, hashed_password: bytes) -> bool:
     """

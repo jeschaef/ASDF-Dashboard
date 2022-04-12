@@ -1,11 +1,13 @@
 import logging
+import uuid
 
-from flask import Blueprint, render_template, flash
-from flask_login import login_user
+from flask import Blueprint, render_template, flash, redirect, url_for
+from flask_login import login_user, login_required, logout_user, current_user
 
 from app import db
 from app.auth import get_hashed_password
 from app.blueprints.forms import RegisterForm, LoginForm
+from app.blueprints.util import redirect_url
 from app.model import User
 
 auth = Blueprint('auth', __name__)
@@ -22,11 +24,27 @@ def flash_errors(form):
             ), 'error')
 
 
+def perform_login(user, remember=False):
+    # Create & store new session token
+    user.session_token = uuid.uuid4().hex
+    db.session.commit()
+
+    # Login
+    logged_in = login_user(user, remember)
+    if logged_in:
+        log.debug(f"Successfully logged in user {user})")
+    else:
+        log.debug(f"Could not login user {user})")
+
+
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
-    form = RegisterForm()
+    # if already logged in, redirect to main page
+    if current_user.is_authenticated:
+        return redirect(redirect_url())
 
-    # If valid, create new user and redirect to
+    # Register form: validate, create new user (+login) and redirect
+    form = RegisterForm()
     if form.validate_on_submit():
         email = form.email.data
         name = form.username.data
@@ -36,25 +54,31 @@ def register():
         db.session.add(user)
         db.session.commit()
         log.debug(f"Added user {user})")
+        perform_login(user)
 
-        return "Success"
-    # else:
-    #     flash_errors(form)
+        return redirect(redirect_url())
 
     return render_template('auth/register.html', form=form)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
+    # if already logged in, redirect to main page
+    if current_user.is_authenticated:
+        return redirect(redirect_url())
+
+    # Login form: validate, login via login_mngr and redirect
     form = LoginForm()
     if form.validate_on_submit():
+        perform_login(form.user, form.remember_me.data)
+        return redirect(redirect_url())
 
-        # Login user
-        logged_in = login_user(form.user, form.remember_me)
-        if logged_in:
-            log.debug(f"Successfully logged in user {form.user})")
-        else:
-            log.debug(f"Could not login user {form.user})")
-
-        return "Success"
     return render_template('auth/login.html', form=form)
+
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    log.debug(f"Logged out user successfully")
+    return redirect(url_for('main.index'))

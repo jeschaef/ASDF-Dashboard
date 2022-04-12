@@ -11,10 +11,9 @@ from app.db import db
 
 from app.blueprints.main import main as main_blueprint
 from app.blueprints.auth import auth as auth_blueprint
+from app.blueprints.dashboard import dashboard as dashboard_blueprint
 
 # Debug toolbar
-from app.navigation import nav
-
 toolbar = DebugToolbarExtension()
 
 
@@ -67,12 +66,12 @@ def create_app(test_config=None):
     toolbar.init_app(app)
     login_mngr.init_app(app)
     mail.init_app(app)
-    nav.init_app(app)
     log.debug('Initialized flask extensions')
 
     # register blueprints
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
+    app.register_blueprint(dashboard_blueprint)
 
     return app
 

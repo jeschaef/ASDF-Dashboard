@@ -4,4 +4,9 @@
 
 {% block content %}
 <h1>Index</h1>
+
+{% if current_user.is_authenticated %}
+    <p>Hello {{ current_user.name }}!</p>
+{% endif %}
+
 {% endblock %}
