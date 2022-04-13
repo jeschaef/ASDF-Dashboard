@@ -9,7 +9,7 @@ from app.model import User
 login_mngr = LoginManager()
 login_mngr.login_view = 'auth.login'
 # login_mngr.login_message = 'Hello, you need login'    # flashed message
-login_mngr.session_protection = "strong"
+login_mngr.session_protection = "basic"
 
 # Logging
 log = logging.getLogger()

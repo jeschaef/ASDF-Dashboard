@@ -32,7 +32,7 @@ def perform_login(user, remember=False):
     # Login
     logged_in = login_user(user, remember)
     if logged_in:
-        log.debug(f"Successfully logged in user {user})")
+        log.debug(f"Successfully logged in user {user} (remember_me={remember})")
     else:
         log.debug(f"Could not login user {user})")
 
