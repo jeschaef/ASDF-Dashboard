@@ -29,7 +29,7 @@
         </svg>
         <span class="visually-hidden">Icon-only</span>
     </a>
-    <ul class="nav nav-pills nav-flush flex-column mb-auto text-center">
+    <ul class="nav nav-pills nav-flush flex-column mb-auto text-center" id="navList">
         <li class="nav-item">
             <a href="#" class="nav-link active py-3 border-bottom" aria-current="page" title="Home"
                data-bs-toggle="tooltip" data-bs-placement="right">
@@ -38,7 +38,7 @@
                 </svg>
             </a>
         </li>
-        <li>
+        <li class="nav-item">
             <a href="#" class="nav-link py-3 border-bottom" title="Dashboard" data-bs-toggle="tooltip"
                data-bs-placement="right">
                 <svg class="bi" width="24" height="24" role="img" aria-label="Dashboard">
@@ -46,7 +46,7 @@
                 </svg>
             </a>
         </li>
-        <li>
+        <li class="nav-item">
             <a href="#" class="nav-link py-3 border-bottom" title="Orders" data-bs-toggle="tooltip"
                data-bs-placement="right">
                 <svg class="bi" width="24" height="24" role="img" aria-label="Orders">
@@ -54,7 +54,7 @@
                 </svg>
             </a>
         </li>
-        <li>
+        <li class="nav-item">
             <a href="#" class="nav-link py-3 border-bottom" title="Products" data-bs-toggle="tooltip"
                data-bs-placement="right">
                 <svg class="bi" width="24" height="24" role="img" aria-label="Products">
@@ -62,7 +62,7 @@
                 </svg>
             </a>
         </li>
-        <li>
+        <li class="nav-item">
             <a href="#" class="nav-link py-3 border-bottom" title="Customers" data-bs-toggle="tooltip"
                data-bs-placement="right">
                 <svg class="bi" width="24" height="24" role="img" aria-label="Customers">
@@ -84,7 +84,7 @@
             <li>
                 <hr class="dropdown-divider">
             </li>
-            <li><a class="dropdown-item" href="#">Sign out</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Sign out</a></li>
         </ul>
     </div>
 </div>
