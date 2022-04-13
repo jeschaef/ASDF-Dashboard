@@ -16,10 +16,8 @@
     // Add active class to anchor corresponding to current url path
     for (let i = 0; i < listItems.length; i++) {
         const anchor = listItems[i].getElementsByTagName("A")[0];
-        
+
         if (window.location.pathname === anchor.getAttribute("href")) {
-            const current = document.getElementsByClassName("active");
-            current[0].className = current[0].className.replace(" active", "")
             anchor.className += " active"
         }
     }
