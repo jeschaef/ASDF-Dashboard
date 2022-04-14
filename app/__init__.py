@@ -8,6 +8,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from app.auth import login_mngr
 from app.mail import mail
 from app.db import db
+from app.util import ensure_exists_folder
 
 from app.blueprints.main import main as main_blueprint
 from app.blueprints.auth import auth as auth_blueprint
@@ -27,14 +28,15 @@ def create_app(test_config=None):
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         TESTING=True,
+        UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
+        ALLOWED_EXTENSIONS={'csv'}
     )
     app_root = os.path.dirname(app.instance_path)  # App root folder
 
-    # ensure log folder exists
-    try:
-        os.makedirs(os.path.join(app_root, "log"))
-    except OSError:
-        pass
+    # ensure log/instance/upload folders exists
+    ensure_exists_folder(os.path.join(app_root, "log"))
+    ensure_exists_folder(app.instance_path)
+    ensure_exists_folder(app.config['UPLOAD_FOLDER'])
 
     # Configure logging
     log_conf_path = os.path.join(app_root, "conf", "logging.conf")
@@ -55,12 +57,6 @@ def create_app(test_config=None):
         # load the test config if passed in
         app.config.from_mapping(test_config)
 
-    # ensure the instance folder exists (required for database setup)
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
     # init extensions
     db.init_app(app)
     toolbar.init_app(app)
@@ -78,7 +74,7 @@ def create_app(test_config=None):
 
 if __name__ == '__main__':
     app = create_app()
-    db.drop_all(app=app)
+    # db.drop_all(app=app)
     db.create_all(app=app)  # create db
     app.logger.debug("Created db")
     app.run()

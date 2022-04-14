@@ -53,7 +53,7 @@ def register():
         user = User(email=email, name=name, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        log.debug(f"Added user {user})")
+        log.debug(f"Added {user} to database")
         perform_login(user)
 
         return redirect(redirect_url())

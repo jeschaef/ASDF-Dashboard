@@ -1,11 +1,18 @@
+import logging
+
 from flask import redirect, url_for
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField
-from wtforms.validators import DataRequired, Length, Email, EqualTo
+from flask_wtf.file import FileRequired, FileAllowed
+from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField
+from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms_components import StringField, Email, SelectField
 
 from app.auth import verify_password
 from app.blueprints.util import get_redirect_target, is_safe_url
-from app.model import User
+from app.model import User, Dataset, EMAIL_LENGTH, USER_NAME_LENGTH, PASSWORD_LENGTH, DATASET_NAME_LENGTH
+
+
+log = logging.getLogger()
 
 
 class RedirectForm(FlaskForm):
@@ -24,8 +31,7 @@ class RedirectForm(FlaskForm):
 
 
 class LoginForm(RedirectForm):
-    email = StringField('Email',
-                        validators=[DataRequired(), Length(1, 100), Email()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember me?')
     submit = SubmitField('Log In')
@@ -34,7 +40,7 @@ class LoginForm(RedirectForm):
         super(LoginForm, self).__init__(*args, **kwargs)
         self.user = None
 
-    def validate(self):
+    def validate(self, **kwargs):
         # Parent validation
         initial_validation = super(LoginForm, self).validate()
         if not initial_validation:
@@ -58,9 +64,9 @@ class LoginForm(RedirectForm):
 
 
 class RegisterForm(RedirectForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=32)])
-    email = StringField('Email', validators=[DataRequired(), Email(), Length(min=3, max=100)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=1, max=64)])  # todo increase pw length
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH)])
+    email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=1, max=PASSWORD_LENGTH)])  # todo increase min pw length
     confirm = PasswordField('Verify password',
                             validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Register')
@@ -85,4 +91,63 @@ class RegisterForm(RedirectForm):
         if user:
             self.email.errors.append("Email already registered")
             return False
+        return True
+
+
+class UploadDatasetForm(RedirectForm):
+    dataset = FileField('Upload a dataset',
+                        validators=[FileRequired('No file provided!'),
+                                    FileAllowed(['csv'], 'Upload must be a csv-file!')])
+    name = StringField('Dataset Name', validators=[DataRequired(), Length(min=1, max=DATASET_NAME_LENGTH)])
+    description = StringField('Dataset Description')
+    submit = SubmitField('Upload')
+
+    def __init__(self, owner, *args, **kwargs):
+        super(UploadDatasetForm, self).__init__(*args, **kwargs)
+        self.owner = owner
+
+    def validate(self, **kwargs):
+        # Parent validation
+        initial_validation = super(UploadDatasetForm, self).validate()
+        if not initial_validation:
+            return False
+
+        # Check if user already has a dataset with this name
+        name = self.name.data
+        log.debug(f"Running query for name={name} and owner={self.owner}")
+        d = Dataset.query.filter_by(name=name, owner=self.owner).first()
+        log.debug(f"Got dataset {d}")
+        if d:
+            self.name.errors.append(f"Dataset '{name}' already exists!")
+            return False
+
+        log.debug(f"Successfully validated {self}")
+        return True
+
+
+class SelectDatasetForm(RedirectForm):
+    select = SelectField('Select a dataset')    # choices are added based on uploaded datasets
+    submit = SubmitField('Upload')
+
+    def __init__(self, owner, *args, **kwargs):
+        super(SelectDatasetForm, self).__init__(*args, **kwargs)
+        self.owner = owner
+        self.dataset = None
+        self.select.choices = []
+
+    def validate(self, **kwargs):
+        # Parent validation
+        initial_validation = super(SelectDatasetForm, self).validate()
+        if not initial_validation:
+            return False
+
+        # Validate
+        name = self.select.data
+        d = Dataset.query.filter_by(name=name, owner=self.owner).first()
+        if not d:
+            self.select.errors.append(f"Could not find dataset '{name}'")
+
+        # Store dataset
+        self.dataset = d
+
         return True

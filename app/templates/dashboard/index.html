@@ -1,0 +1,24 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+{% block inner_content %}
+
+<div class="flex-fill justify-content-between align-items-center p-3">
+    <h1 class="h1">Index</h1>
+
+    <div class="pt-5">Description on how to use dashboard</div>
+
+    <div class="pt-5">
+        <h1 class="h4">Upload your dataset</h1>
+        You can upload and inspect your datasets <a href="{{ url_for('dashboard.datasets') }}">here</a>.
+    </div>
+
+    <div class="pt-5">
+        <h1 class="h4">Subgroup fairness evaluation</h1>
+        For your uploaded datasets and classification results you can perform a <a
+            href="{{ url_for('dashboard.evaluation') }}">subgroup fairness assessment</a>
+    </div>
+
+</div>
+
+
+{% endblock %}

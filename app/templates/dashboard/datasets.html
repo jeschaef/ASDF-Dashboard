@@ -1,0 +1,110 @@
+{% extends "dashboard/dashboard_base.html" %}
+
+<!-- Import form rendering macro -->
+{% from '_formhelpers.html' import render_field %}
+
+
+{% block styles %}
+{{ super() }}
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css">
+{% endblock %}
+
+
+{% block inner_content %}
+<div class="flex-fill justify-content-between align-items-center p-3">
+    <h1 class="h1">Datasets</h1>
+
+    <div class="pt-5">
+        <h1 class="h4">Upload a dataset</h1>
+
+        <form method="POST" enctype=multipart/form-data>
+            {{ form.csrf_token() }}
+
+            {{ render_field(form.dataset, form.is_submitted()) }}
+            {{ render_field(form.name, form.is_submitted()) }}
+            {{ render_field(form.description, form.is_submitted()) }}
+
+            {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
+        </form>
+    </div>
+
+    <div class="pt-5">
+        <h1 class="h4">View your datasets</h1>
+
+        <div id="toolbar">
+            <button id="remove" class="btn btn-danger">
+                Delete
+            </button>
+        </div>
+        <table id="dstable"
+               data-toggle="table"
+               data-toolbar="#toolbar"
+               data-classes="table table-hover"
+               data-search="true"
+               data-pagination="true"
+               data-page-list="[5, 10, 25, 50, 100, all]"
+               data-maintain-meta-data="true"
+               data-select-item-name="state"
+               data-click-to-select="true">
+            <thead>
+            <tr>
+                <th data-field="state" data-checkbox="true"></th>
+                <th data-field="name" scope="col">Name</th>
+                <th data-field="description" scope="col">Description</th>
+                <th data-field="date" scope="col">Upload date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for d in datasets %}
+            <tr>
+                <td class="bs-checkbox"></td>
+                <td>{{ d.name }}</td>
+                <td>{{ d.description }}</td>
+                <td>{{ d.upload_date }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/datasets.js') }}"></script>
+<!--<script>-->
+
+
+<!--let selections = []-->
+
+<!--function getNameSelections() {-->
+<!--    console.log("Selections:", $("#dstable").bootstrapTable('getSelections'))-->
+<!--    alert("Selections:" + $("#dstable").bootstrapTable('getSelections'))-->
+<!--    return $.map($("#dstable").bootstrapTable('getSelections'), function (row) {-->
+<!--        console.log("Row name:", row.name)-->
+<!--        return row.name-->
+<!--    })-->
+<!--}-->
+
+<!--function initTable() {-->
+
+<!--    $("#dstable").bootstrapTable()-->
+
+
+<!--    $("#remove").click(function () {-->
+<!--        console.log("Click remove button")-->
+<!--        var ids = getNameSelections()-->
+<!--        // $("#remove").prop('disabled', true)-->
+<!--    })-->
+<!--}-->
+
+<!--$(function () {-->
+<!--    initTable()-->
+<!--})-->
+
+<!--</script>-->
+{% endblock %}
