@@ -33,7 +33,10 @@
         <h1 class="h4">View your datasets</h1>
 
         <div id="toolbar">
-            <button id="remove" class="btn btn-danger" url="{{ url_for('dashboard.delete_dataset') }}">
+            <button id="remove" class="btn btn-danger">
+                <svg class="bi" width="16" height="16">
+                    <use xlink:href="#trash-fill"/>
+                </svg>
                 Delete
             </button>
         </div>
@@ -46,13 +49,18 @@
                data-page-list="[5, 10, 25, 50, 100, all]"
                data-maintain-meta-data="true"
                data-select-item-name="state"
-               data-click-to-select="true">
+               data-click-to-select="true"
+               url-remove="{{ url_for('dashboard.delete_dataset') }}"
+               url-inspect="{{ url_for('dashboard.inspect') }}" >
             <thead>
             <tr>
                 <th data-field="state" data-checkbox="true"></th>
-                <th data-field="name" scope="col">Name</th>
-                <th data-field="description" scope="col">Description</th>
-                <th data-field="date" scope="col">Upload date</th>
+                <th data-field="name" >Name</th>
+                <th data-field="description" >Description</th>
+                <th data-field="date" >Upload date</th>
+                <th data-field="operations" data-formatter="operationFormatter" data-events="operateEvents"
+                    data-align="center">Operations
+                </th>
             </tr>
             </thead>
             <tbody>
@@ -62,6 +70,7 @@
                 <td>{{ d.name }}</td>
                 <td>{{ d.description }}</td>
                 <td>{{ d.upload_date }}</td>
+                <td></td>
             </tr>
             {% endfor %}
             </tbody>
@@ -69,10 +78,7 @@
     </div>
 
 </div>
-
 {% endblock %}
-
-{% set del_url = url_for('dashboard.delete_dataset') %}
 
 {% block scripts %}
 {{ super() }}

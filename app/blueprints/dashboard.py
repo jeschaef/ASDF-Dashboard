@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import pandas as pd
 
 from flask import Blueprint, render_template, current_app, url_for, request
 from flask_login import login_required, current_user
@@ -77,12 +78,38 @@ def delete_dataset():
         db.session.delete(d)
         db.session.commit()
 
-        user_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], owner)
-        file_path = os.path.join(user_folder, d.id + '.csv')
+        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, d.id + '.csv')
         os.remove(file_path)
         log.debug(f"Deleted dataset!")
 
     return redirect(url_for('dashboard.datasets'))
+
+
+@dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])
+@login_required
+def inspect():
+
+    # Either get dataset from request via name (POST) or simply the latest uploaded (GET)
+    owner = current_user.id
+    selected_name = request.form.get('dataset')
+
+    if selected_name is None:
+        # Most recent uploaded
+        d = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first()
+        # TODO no dataset uploaded
+    else:
+        # Get dataset from name
+        d = Dataset.query.filter_by(owner=owner, name=selected_name).first()
+        # TODO dataset name does not match
+
+    # Load data
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, d.id + '.csv')
+    data = pd.read_csv(file_path)
+
+    # Parses the dataframe into an HTML element with 3 Bootstrap classes assigned.
+    html = data.to_html(classes=["table-bordered table-striped table-hover"])
+
+    return render_template('dashboard/inspect.html', dataset=d, data=data, html=html)
 
 
 @dashboard.route('/dashboard/evaluation')

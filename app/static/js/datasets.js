@@ -1,6 +1,32 @@
 let $table = $("#dstable")
 let $remove = $("#remove")
 
+window.operateEvents = {
+    // Click inspect operation
+    'click .inspect': function (e, value, row, index) {
+        console.log('Clicked row: ' + JSON.stringify(row))
+        console.log('Row name: ' + row.name)
+
+        // Add hidden form with dataset names and submit it (redirects)
+        const url = $table.attr("url-inspect")
+        let form = $('<form action="' + url + '" method="POST"></form>');
+        let input = $("<input>")
+            .attr("type", "hidden")
+            .attr("name", "dataset").val(row.name);
+
+        form.append(input)
+        $('body').append(form);
+        form.submit();
+    }
+}
+
+function operationFormatter(value, row, index, field) {
+    let inspect = $('<a class="inspect" href="javascript:void(0)" title="Inspect"></a>')
+        .append($('<svg class="bi" width="16" height="16"><use xlink:href="#search"/></svg>'))
+    return [inspect.prop('outerHTML')].join('')
+}
+
+
 function getNameSelections() {
     return $.map($table.bootstrapTable('getSelections'), function (row) {
         return row.name
@@ -28,11 +54,11 @@ function initTable() {
         $remove.prop('disabled', true)
 
         // Add hidden form with dataset names and submit it (redirects)
-        const url = $remove.attr("url")
+        const url = $table.attr("url-remove")
         let form = $('<form action="' + url + '" method="POST"></form>');
         let input = $("<input>")
-               .attr("type", "hidden")
-               .attr("name", "datasets").val(JSON.stringify(names));
+            .attr("type", "hidden")
+            .attr("name", "datasets").val(JSON.stringify(names));
 
         form.append(input)
         $('body').append(form);

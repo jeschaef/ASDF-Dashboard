@@ -8,3 +8,4 @@ Flask-Login~=0.6.0
 Flask-Mail~=0.9.1
 Flask-Nav~=0.6
 bcrypt~=3.2.0
+pandas~=1.4.2

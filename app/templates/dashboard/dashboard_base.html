@@ -60,6 +60,15 @@
                        data-bs-toggle="tooltip"
                        data-bs-placement="right">
                         <svg class="bi" width="24" height="24" role="img" aria-label="Datasets">
+                            <use xlink:href="#upload"/>
+                        </svg>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('dashboard.inspect') }}" class="nav-link py-3 border-bottom" title="Inspect"
+                       data-bs-toggle="tooltip"
+                       data-bs-placement="right">
+                        <svg class="bi" width="24" height="24" role="img" aria-label="Inspect">
                             <use xlink:href="#table"/>
                         </svg>
                     </a>
@@ -70,14 +79,6 @@
                        data-bs-placement="right">
                         <svg class="bi" width="24" height="24" role="img" aria-label="Dashboard">
                             <use xlink:href="#speedometer2"/>
-                        </svg>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link py-3 border-bottom" title="Products" data-bs-toggle="tooltip"
-                       data-bs-placement="right">
-                        <svg class="bi" width="24" height="24" role="img" aria-label="Products">
-                            <use xlink:href="#grid"/>
                         </svg>
                     </a>
                 </li>
