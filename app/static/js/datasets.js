@@ -24,12 +24,20 @@ function initTable() {
         var names = getNameSelections()
         console.log("Selections for removal:", names)
 
-        // Instead remove, perform
-        $table.bootstrapTable('remove', {
-            field: 'name',
-            values: names
-        })
+        // Disable button
         $remove.prop('disabled', true)
+
+        // Add hidden form with dataset names and submit it (redirects)
+        const url = $remove.attr("url")
+        let form = $('<form action="' + url + '" method="POST"></form>');
+        let input = $("<input>")
+               .attr("type", "hidden")
+               .attr("name", "datasets").val(JSON.stringify(names));
+
+        form.append(input)
+        $('body').append(form);
+        form.submit();
+
     })
 
 }

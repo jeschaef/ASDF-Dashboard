@@ -33,7 +33,7 @@
         <h1 class="h4">View your datasets</h1>
 
         <div id="toolbar">
-            <button id="remove" class="btn btn-danger">
+            <button id="remove" class="btn btn-danger" url="{{ url_for('dashboard.delete_dataset') }}">
                 Delete
             </button>
         </div>
@@ -72,39 +72,9 @@
 
 {% endblock %}
 
+{% set del_url = url_for('dashboard.delete_dataset') %}
 
 {% block scripts %}
 {{ super() }}
 <script src="{{ url_for('static', filename='js/datasets.js') }}"></script>
-<!--<script>-->
-
-
-<!--let selections = []-->
-
-<!--function getNameSelections() {-->
-<!--    console.log("Selections:", $("#dstable").bootstrapTable('getSelections'))-->
-<!--    alert("Selections:" + $("#dstable").bootstrapTable('getSelections'))-->
-<!--    return $.map($("#dstable").bootstrapTable('getSelections'), function (row) {-->
-<!--        console.log("Row name:", row.name)-->
-<!--        return row.name-->
-<!--    })-->
-<!--}-->
-
-<!--function initTable() {-->
-
-<!--    $("#dstable").bootstrapTable()-->
-
-
-<!--    $("#remove").click(function () {-->
-<!--        console.log("Click remove button")-->
-<!--        var ids = getNameSelections()-->
-<!--        // $("#remove").prop('disabled', true)-->
-<!--    })-->
-<!--}-->
-
-<!--$(function () {-->
-<!--    initTable()-->
-<!--})-->
-
-<!--</script>-->
 {% endblock %}

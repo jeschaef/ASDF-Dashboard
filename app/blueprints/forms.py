@@ -123,31 +123,3 @@ class UploadDatasetForm(RedirectForm):
 
         log.debug(f"Successfully validated {self}")
         return True
-
-
-class SelectDatasetForm(RedirectForm):
-    select = SelectField('Select a dataset')    # choices are added based on uploaded datasets
-    submit = SubmitField('Upload')
-
-    def __init__(self, owner, *args, **kwargs):
-        super(SelectDatasetForm, self).__init__(*args, **kwargs)
-        self.owner = owner
-        self.dataset = None
-        self.select.choices = []
-
-    def validate(self, **kwargs):
-        # Parent validation
-        initial_validation = super(SelectDatasetForm, self).validate()
-        if not initial_validation:
-            return False
-
-        # Validate
-        name = self.select.data
-        d = Dataset.query.filter_by(name=name, owner=self.owner).first()
-        if not d:
-            self.select.errors.append(f"Could not find dataset '{name}'")
-
-        # Store dataset
-        self.dataset = d
-
-        return True

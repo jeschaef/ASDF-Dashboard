@@ -1,12 +1,13 @@
+import json
 import logging
 import os
 
-from flask import Blueprint, render_template, current_app, url_for
+from flask import Blueprint, render_template, current_app, url_for, request
 from flask_login import login_required, current_user
-from werkzeug.utils import secure_filename, redirect
+from werkzeug.utils import redirect
 
 from app import db, ensure_exists_folder
-from app.blueprints.forms import UploadDatasetForm, SelectDatasetForm
+from app.blueprints.forms import UploadDatasetForm
 from app.model import Dataset
 
 dashboard = Blueprint('dashboard', __name__)
@@ -56,13 +57,6 @@ def datasets():
         # Redirect to same page (to clear form inputs)
         return redirect(url_for('dashboard.datasets'))
 
-    # Select form
-    # select_form = SelectDatasetForm(owner)
-    # select_form.select.choices = []
-    # if select_form.validate_on_submit():
-    #     log.debug(f"Validated select dataset form")
-    #     d = select_form.dataset
-
     # Get all the user's datasets
     dataset_list = Dataset.query.filter_by(owner=owner)
 
@@ -72,10 +66,9 @@ def datasets():
 @dashboard.route('/dashboard/datasets/delete', methods=['POST'])
 @login_required
 def delete_dataset():
-
     # Get selected datasets
     owner = current_user.id
-    selected_names = []
+    selected_names = json.loads(request.form.get('datasets'))
     ds = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
 
     # Remove selected datasets from database & remove data files from disk
@@ -90,7 +83,6 @@ def delete_dataset():
         log.debug(f"Deleted dataset!")
 
     return redirect(url_for('dashboard.datasets'))
-
 
 
 @dashboard.route('/dashboard/evaluation')
