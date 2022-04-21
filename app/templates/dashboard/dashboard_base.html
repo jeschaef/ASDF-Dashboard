@@ -4,6 +4,9 @@
 <!-- Styles -->
 {% block styles %}
 {{ super() }}
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.19.1/dist/bootstrap-table.min.css">
+<!-- Custom stylesheets -->
 <link href="{{ url_for('static', filename='css/sidebars.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
 {% endblock %}

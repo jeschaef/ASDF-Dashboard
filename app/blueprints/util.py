@@ -1,6 +1,13 @@
+import logging
+import os
 from urllib.parse import urlparse, urljoin
 
-from flask import request, abort, url_for
+import pandas as pd
+from flask import request, abort, url_for, current_app
+
+from app.cache import cache
+
+log = logging.getLogger()
 
 
 def is_safe_url(target):
@@ -22,3 +29,10 @@ def redirect_url(endpoint='main.index'):
     if not is_safe_url(next):
         return abort(400)
     return next or url_for(endpoint)
+
+
+@cache.memoize(60)      # cache for 1 min
+def load_data(owner, dataset):
+    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
+    log.debug(f"Loading data from file {file_path}")
+    return pd.read_csv(file_path)

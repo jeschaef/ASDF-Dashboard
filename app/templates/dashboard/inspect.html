@@ -5,12 +5,9 @@
     <h1 class="h1">Inspect</h1>
 
     <div class="pt-5">
-        <form>
-
-        </form>
         <h1 class="h4">{{ dataset.name }}</h1>
 
-        {{ html }}
+<!--        {{ html|safe }}-->
 
         <div id="toolbar">
         </div>
@@ -19,8 +16,11 @@
                data-toolbar="#toolbar"
                data-classes="table table-hover"
                data-search="true"
+               data-side-pagination="server"
                data-pagination="true"
                data-page-list="[5, 10, 25, 50, 100, all]"
+               data-url="{{ url_for('dashboard.raw_data', name=dataset.name) }}"
+               data-query-params="queryParams"
                data-maintain-meta-data="true">
             <thead>
                 <tr>
@@ -30,18 +30,27 @@
                     {% endfor %}
                 </tr>
             </thead>
-            <tbody>
-                <!-- Rows -->
-                {% for key,value in data.iterrows() %}
-                <tr>
-                    {% for c in data.columns %}
-                        <td>{{ value[c] }}</td>
-                    {% endfor %}
-                </tr>
-                {% endfor %}
-            </tbody>
+<!--            <tbody>-->
+<!--                &lt;!&ndash; Rows &ndash;&gt;-->
+<!--                {% for key,value in data.iterrows() %}-->
+<!--                <tr>-->
+<!--                    {% for c in data.columns %}-->
+<!--                        <td>{{ value[c] }}</td>-->
+<!--                    {% endfor %}-->
+<!--                </tr>-->
+<!--                {% endfor %}-->
+<!--            </tbody>-->
         </table>
+
+
+
     </div>
 
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/inspect.js') }}"></script>
 {% endblock %}

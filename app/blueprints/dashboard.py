@@ -9,6 +9,7 @@ from werkzeug.utils import redirect
 
 from app import db, ensure_exists_folder
 from app.blueprints.forms import UploadDatasetForm
+from app.blueprints.util import load_data
 from app.model import Dataset
 
 dashboard = Blueprint('dashboard', __name__)
@@ -95,22 +96,47 @@ def inspect():
 
     if selected_name is None:
         # Most recent uploaded
-        d = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first()
+        d = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first_or_404()
         # TODO no dataset uploaded
     else:
         # Get dataset from name
-        d = Dataset.query.filter_by(owner=owner, name=selected_name).first()
+        d = Dataset.query.filter_by(owner=owner, name=selected_name).first_or_404()
         # TODO dataset name does not match
 
     # Load data
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, d.id + '.csv')
-    data = pd.read_csv(file_path)
+    data = load_data(owner, d.id).iloc[0:10]
 
     # Parses the dataframe into an HTML element with 3 Bootstrap classes assigned.
     html = data.to_html(classes=["table-bordered table-striped table-hover"])
 
     return render_template('dashboard/inspect.html', dataset=d, data=data, html=html)
 
+
+@dashboard.route('/dashboard/datasets/<name>')
+@login_required
+def raw_data(name):
+
+    # Get query parameters limit and offset
+    log.debug(request.args)
+    offset = request.args.get('offset')         # might be None
+    offset = int(offset) if offset else 0       # parse str to int or 0 if None
+    limit = request.args.get('limit')
+    limit = int(limit) if limit else 10
+
+    # Query dataset object from database and load data
+    owner = current_user.id
+    d = Dataset.query.filter_by(owner=owner, name=name).first_or_404()
+    data = load_data(owner, d.id).iloc[offset:offset+limit]
+
+    # Prepare json from dataframe
+    data_json = data.to_json(orient='records')
+    parsed = json.loads(data_json)      # list of records (dicts with column:value pairs)
+
+    # server-side pagination requires format {'total': num, 'rows': {... dataframe ...}}
+    total_rows = 100
+    server_side_format = {'total': total_rows, 'rows': parsed}
+
+    return json.dumps(server_side_format, indent=4)
 
 @dashboard.route('/dashboard/evaluation')
 @login_required

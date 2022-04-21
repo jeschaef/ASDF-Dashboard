@@ -6,6 +6,7 @@ from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 
 from app.auth import login_mngr
+from app.cache import cache
 from app.mail import mail
 from app.db import db
 from app.util import ensure_exists_folder
@@ -62,6 +63,7 @@ def create_app(test_config=None):
     toolbar.init_app(app)
     login_mngr.init_app(app)
     mail.init_app(app)
+    cache.init_app(app)
     log.debug('Initialized flask extensions')
 
     # register blueprints
