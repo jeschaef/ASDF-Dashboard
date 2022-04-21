@@ -123,3 +123,17 @@ class UploadDatasetForm(RedirectForm):
 
         log.debug(f"Successfully validated {self}")
         return True
+
+
+class SelectDatasetForm(RedirectForm):
+    dataset = SelectField('Select a Dataset')
+
+    def __init__(self, owner, *args, **kwargs):
+        super(SelectDatasetForm, self).__init__(*args, **kwargs)
+        self.owner = owner
+
+    def validate(self, **kwargs):
+        # Parent validation
+        initial_validation = super(SelectDatasetForm, self).validate()
+        if not initial_validation:
+            return False

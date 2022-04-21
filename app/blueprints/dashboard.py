@@ -7,11 +7,12 @@ from flask import Blueprint, render_template, current_app, url_for, request
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
-from app import db, ensure_exists_folder
+from app import db, ensure_exists_folder, cache
 from app.blueprints.forms import UploadDatasetForm
-from app.blueprints.util import load_data
+from app.blueprints.util import load_data, delete_data
 from app.model import Dataset
 
+# TODO fix layout of dashboard (fullscreen, scrollable)
 dashboard = Blueprint('dashboard', __name__)
 log = logging.getLogger()
 
@@ -72,16 +73,15 @@ def delete_dataset():
     # Get selected datasets
     owner = current_user.id
     selected_names = json.loads(request.form.get('datasets'))
-    ds = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
+    datasets = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
 
     # Remove selected datasets from database & remove data files from disk
-    for d in ds:
+    for d in datasets:
         log.debug(f"Delete dataset {d}...")
         db.session.delete(d)
         db.session.commit()
 
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, d.id + '.csv')
-        os.remove(file_path)
+        delete_data(owner, d.id)
         log.debug(f"Deleted dataset!")
 
     return redirect(url_for('dashboard.datasets'))
@@ -90,42 +90,43 @@ def delete_dataset():
 @dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])
 @login_required
 def inspect():
-
     # Either get dataset from request via name (POST) or simply the latest uploaded (GET)
     owner = current_user.id
     selected_name = request.form.get('dataset')
+    all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date.desc()).all()
 
     if selected_name is None:
-        # Most recent uploaded
-        dataset = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first_or_404()
+        # Most recent uploaded (first in list)
+        dataset = all_datasets[0]
         # TODO no dataset uploaded
     else:
-        # Get dataset from name
-        dataset = Dataset.query.filter_by(owner=owner, name=selected_name).first_or_404()
-        # TODO dataset name does not match
+        # Get dataset by name
+        for d in all_datasets:
+            if d.name == selected_name:
+                dataset = d
+        # TODO dataset name does not match any of the datasets
 
     # Load data columns+types (cached)
     columns = load_data(owner, dataset.id).dtypes
-    log.debug(f"{type(columns)}: {columns}")
+    # log.debug(f"{type(columns)}: {columns}")
 
     # TODO wait for bug fix in bootstrap-table with url+pagination and filter-control
     # TODO fix missing icons
-    return render_template('dashboard/inspect.html', dataset=dataset, columns=columns)
+    return render_template('dashboard/inspect.html', all_datasets=all_datasets, dataset=dataset, columns=columns)
 
 
 @dashboard.route('/dashboard/datasets/<name>')
 @login_required
 def raw_data(name):
-
     # Get query parameters limit, offset, sort, order and filter TODO check for valid inputs?
-    log.debug(request.args)
-    offset = request.args.get('offset')         # might be None
-    offset = int(offset) if offset else 0       # parse str to int or 0 if None
+    # log.debug(request.args)
+    offset = request.args.get('offset')  # might be None
+    offset = int(offset) if offset else 0  # parse str to int or 0 if None
     limit = request.args.get('limit')
     limit = int(limit) if limit else 10
     sort = request.args.get('sort')
     order = request.args.get('order')
-    filter = request.args.get('filter')
+    filter = request.args.get('filter')  # TODO apply filter
 
     # Query dataset object from database and load data
     owner = current_user.id
@@ -136,16 +137,17 @@ def raw_data(name):
     total_rows = len(data)
     if sort and order:
         data = data.sort_values(by=sort, ascending=(order == 'asc'))
-    data = data.iloc[offset:offset+limit]
+    data = data.iloc[offset:offset + limit]
 
     # Prepare json from dataframe
     data_json = data.to_json(orient='records')
-    parsed = json.loads(data_json)      # list of records (dicts with column:value pairs)
+    parsed = json.loads(data_json)  # list of records (dicts with column:value pairs)
 
     # server-side pagination requires format {'total': num, 'rows': {... dataframe ...}}
     server_side_format = {'total': total_rows, 'rows': parsed}
 
     return json.dumps(server_side_format, indent=4)
+
 
 @dashboard.route('/dashboard/evaluation')
 @login_required
