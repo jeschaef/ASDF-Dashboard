@@ -21,9 +21,9 @@ window.operateEvents = {
 }
 
 function operationFormatter(value, row, index, field) {
-    let inspect = $('<a class="inspect" href="javascript:void(0)" title="Inspect"></a>')
+    let element = $('<a class="inspect" href="javascript:void(0)" title="Inspect"></a>')
         .append($('<svg class="bi" width="16" height="16"><use xlink:href="#search"/></svg>'))
-    return [inspect.prop('outerHTML')].join('')
+    return [element.prop('outerHTML')].join('')
 }
 
 

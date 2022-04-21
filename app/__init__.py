@@ -16,7 +16,7 @@ from app.blueprints.auth import auth as auth_blueprint
 from app.blueprints.dashboard import dashboard as dashboard_blueprint
 
 # Debug toolbar
-toolbar = DebugToolbarExtension()
+# toolbar = DebugToolbarExtension()
 
 
 def create_app(test_config=None):
@@ -60,7 +60,7 @@ def create_app(test_config=None):
 
     # init extensions
     db.init_app(app)
-    toolbar.init_app(app)
+    # toolbar.init_app(app)
     login_mngr.init_app(app)
     mail.init_app(app)
     cache.init_app(app)

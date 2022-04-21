@@ -32,6 +32,7 @@ def datasets():
 
         # Create dataset object from inputs
         f = form.dataset.data
+        columns = pd.read_csv(f, header=0, nrows=0).columns.tolist()
         name = form.name.data
         description = form.description.data
         new_dataset = Dataset(name=name, owner=owner, description=description)
@@ -96,44 +97,52 @@ def inspect():
 
     if selected_name is None:
         # Most recent uploaded
-        d = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first_or_404()
+        dataset = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date).first_or_404()
         # TODO no dataset uploaded
     else:
         # Get dataset from name
-        d = Dataset.query.filter_by(owner=owner, name=selected_name).first_or_404()
+        dataset = Dataset.query.filter_by(owner=owner, name=selected_name).first_or_404()
         # TODO dataset name does not match
 
-    # Load data
-    data = load_data(owner, d.id).iloc[0:10]
+    # Load data columns+types (cached)
+    columns = load_data(owner, dataset.id).dtypes
+    log.debug(f"{type(columns)}: {columns}")
 
-    # Parses the dataframe into an HTML element with 3 Bootstrap classes assigned.
-    html = data.to_html(classes=["table-bordered table-striped table-hover"])
-
-    return render_template('dashboard/inspect.html', dataset=d, data=data, html=html)
+    # TODO wait for bug fix in bootstrap-table with url+pagination and filter-control
+    # TODO fix missing icons
+    return render_template('dashboard/inspect.html', dataset=dataset, columns=columns)
 
 
 @dashboard.route('/dashboard/datasets/<name>')
 @login_required
 def raw_data(name):
 
-    # Get query parameters limit and offset
+    # Get query parameters limit, offset, sort, order and filter TODO check for valid inputs?
     log.debug(request.args)
     offset = request.args.get('offset')         # might be None
     offset = int(offset) if offset else 0       # parse str to int or 0 if None
     limit = request.args.get('limit')
     limit = int(limit) if limit else 10
+    sort = request.args.get('sort')
+    order = request.args.get('order')
+    filter = request.args.get('filter')
 
     # Query dataset object from database and load data
     owner = current_user.id
     d = Dataset.query.filter_by(owner=owner, name=name).first_or_404()
-    data = load_data(owner, d.id).iloc[offset:offset+limit]
+    data = load_data(owner, d.id)
+
+    # Paginate & sort loaded data
+    total_rows = len(data)
+    if sort and order:
+        data = data.sort_values(by=sort, ascending=(order == 'asc'))
+    data = data.iloc[offset:offset+limit]
 
     # Prepare json from dataframe
     data_json = data.to_json(orient='records')
     parsed = json.loads(data_json)      # list of records (dicts with column:value pairs)
 
     # server-side pagination requires format {'total': num, 'rows': {... dataframe ...}}
-    total_rows = 100
     server_side_format = {'total': total_rows, 'rows': parsed}
 
     return json.dumps(server_side_format, indent=4)

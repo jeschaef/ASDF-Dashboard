@@ -1,50 +1,40 @@
 {% extends "dashboard/dashboard_base.html" %}
 
+{% block styles %}
+{{ super() }}
+<!-- Import fontawesome free kit for icons (not shown otherwise, hotfix) -->
+<link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css">
+{% endblock %}
+
 {% block inner_content %}
 <div class="flex-fill justify-content-between align-items-center p-3">
-    <h1 class="h1">Inspect</h1>
-
-    <div class="pt-5">
-        <h1 class="h4">{{ dataset.name }}</h1>
-
-<!--        {{ html|safe }}-->
-
-        <div id="toolbar">
-        </div>
-        <table id="dstable"
-               data-toggle="table"
-               data-toolbar="#toolbar"
-               data-classes="table table-hover"
-               data-search="true"
-               data-side-pagination="server"
-               data-pagination="true"
-               data-page-list="[5, 10, 25, 50, 100, all]"
-               data-url="{{ url_for('dashboard.raw_data', name=dataset.name) }}"
-               data-query-params="queryParams"
-               data-maintain-meta-data="true">
-            <thead>
-                <tr>
-                    <!-- Column names -->
-                    {% for c in data.columns %}
-                    <th data-field="{{c}}">c</th>
-                    {% endfor %}
-                </tr>
-            </thead>
-<!--            <tbody>-->
-<!--                &lt;!&ndash; Rows &ndash;&gt;-->
-<!--                {% for key,value in data.iterrows() %}-->
-<!--                <tr>-->
-<!--                    {% for c in data.columns %}-->
-<!--                        <td>{{ value[c] }}</td>-->
-<!--                    {% endfor %}-->
-<!--                </tr>-->
-<!--                {% endfor %}-->
-<!--            </tbody>-->
-        </table>
+    <h1 class="h1">{{ dataset.name }}</h1>
 
 
-
-    </div>
+    <table id="dstable"
+           data-toggle="table"
+           data-classes="table table-hover"
+           data-side-pagination="server"
+           data-pagination="true"
+           data-page-list="[5, 10, 25, 50, 100, all]"
+           data-url="{{ url_for('dashboard.raw_data', name=dataset.name) }}"
+           data-query-params="queryParams"
+           data-sort-reset="true"
+           data-show-search-clear-button="true"
+           data-filter-control="true"
+           data-show-filter-control-switch="true"
+           data-show-columns="true"
+           data-show-columns-toggle-all="true"
+           data-maintain-meta-data="true">
+        <thead>
+        <tr>
+            <!-- Column names -->
+            {% for cname, dtype in columns.items() %}
+            <th data-field="{{cname}}" data-sortable="true" data-filter-control="input">{{cname}}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+    </table>
 
 </div>
 {% endblock %}
@@ -52,5 +42,6 @@
 
 {% block scripts %}
 {{ super() }}
+<script src="https://unpkg.com/bootstrap-table@1.19.1/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
 <script src="{{ url_for('static', filename='js/inspect.js') }}"></script>
 {% endblock %}
