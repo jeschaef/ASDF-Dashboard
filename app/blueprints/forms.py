@@ -1,8 +1,11 @@
 import logging
 
+import pandas as pd
+
 from flask import redirect, url_for
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
+from pandas.errors import ParserError, EmptyDataError
 from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField
 from wtforms.validators import DataRequired, Length, EqualTo
 from wtforms_components import StringField, Email, SelectField
@@ -10,7 +13,6 @@ from wtforms_components import StringField, Email, SelectField
 from app.auth import verify_password
 from app.blueprints.util import get_redirect_target, is_safe_url
 from app.model import User, Dataset, EMAIL_LENGTH, USER_NAME_LENGTH, PASSWORD_LENGTH, DATASET_NAME_LENGTH
-
 
 log = logging.getLogger()
 
@@ -66,7 +68,8 @@ class LoginForm(RedirectForm):
 class RegisterForm(RedirectForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=1, max=PASSWORD_LENGTH)])  # todo increase min pw length
+    password = PasswordField('Password', validators=[DataRequired(),
+                                                     Length(min=1, max=PASSWORD_LENGTH)])  # todo increase min pw length
     confirm = PasswordField('Verify password',
                             validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Register')
@@ -98,8 +101,10 @@ class UploadDatasetForm(RedirectForm):
     dataset = FileField('Upload a dataset',
                         validators=[FileRequired('No file provided!'),
                                     FileAllowed(['csv'], 'Upload must be a csv-file!')])
-    name = StringField('Dataset Name', validators=[DataRequired(), Length(min=1, max=DATASET_NAME_LENGTH)])
-    description = StringField('Dataset Description')
+    name = StringField('Dataset name', validators=[DataRequired(), Length(min=1, max=DATASET_NAME_LENGTH)])
+    description = StringField('Dataset description')
+    label_column = StringField('Class label column name (default: class)')
+    prediction_column = StringField('Prediction label column name (default: out)')
     submit = SubmitField('Upload')
 
     def __init__(self, owner, *args, **kwargs):
@@ -121,7 +126,33 @@ class UploadDatasetForm(RedirectForm):
             self.name.errors.append(f"Dataset '{name}' already exists!")
             return False
 
-        log.debug(f"Successfully validated {self}")
+        # Validate pandas csv parsing
+        try:
+            df = pd.read_csv(self.dataset.data)
+        except (ParserError, EmptyDataError, IOError) as err:
+            self.dataset.errors.append(f"Could not read csv-data from given file due to {type(err).__name__}!")
+            return False
+
+        # Validate that either label_column is given (& contained in df) or df contains column 'class'
+        if self.label_column.data is None and 'class' not in df.columns:
+            self.label_column.errors.append("If no column named 'class' is contained in the data, "
+                                            "a class label column must be provided")
+            return False
+
+        if self.label_column.data not in df.columns:
+            self.label_column.errors.append(f"Couldn't find column {self.label_column.data}")
+            return False
+
+        # Validate that either prediction_column is given (& contained in df) or df contains column 'out'
+        if self.prediction_column.data is None and 'out' not in df.columns:
+            self.prediction_column.errors.append("If no column named 'out' is contained in the data, "
+                                            "a prediction label column must be provided")
+            return False
+
+        if self.prediction_column.data not in df.columns:
+            self.prediction_column.errors.append(f"Couldn't find column {self.prediction_column.data}")
+            return False
+
         return True
 
 

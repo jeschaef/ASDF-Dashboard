@@ -31,14 +31,16 @@ def redirect_url(endpoint='main.index'):
     return next or url_for(endpoint)
 
 
-@cache.memoize(60)      # cache for 1 min TODO change
+@cache.memoize(60)  # cache for 1 min TODO change
 def load_data(owner, dataset):
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
     log.debug(f"Loading data from file {file_path}")
-    return pd.read_csv(file_path)
+    with open(file_path, 'r') as f:
+        f.seek(0)       # reset buffer to avoid EmptyDataError
+        return pd.read_csv(f)
 
 
 def delete_data(owner, dataset):
-    cache.delete_memoized(load_data, owner, dataset)        # delete from cache, too
+    cache.delete_memoized(load_data, owner, dataset)  # delete from cache, too
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
     os.remove(file_path)

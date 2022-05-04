@@ -1,6 +1,9 @@
+import warnings
+
 import sklearn.base
 from aif360.sklearn import metrics as mtr
 from aif360.sklearn.utils import check_groups
+from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.metrics import accuracy_score, f1_score, silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.base import ClusterMixin
 import pandas as pd
@@ -231,9 +234,9 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     @rtype: FairnessResult
     """
     # Train clustering model
-    X = prepare(data, categ_columns)
-    M = model.fit(X)
-    clustering = M.labels_
+    x = prepare(data, categ_columns)
+    m = model.fit(x)
+    clustering = m.labels_
 
     # Set clustering labels
     data_clustered = data.copy()
@@ -242,13 +245,16 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     # data_clustered = data_clustered[data_clustered['cluster'] >= 0]  # remove outliers (cluster -1)
 
     # Subgroups via normalized cluster entropy
-    G = normalized_entropy_groups(data_clustered, threshold=threshold)
+    g = normalized_entropy_groups(data_clustered, threshold=threshold)
 
     # Compute fairness metrics
-    general_fairness, subgroup_fairness, priv_groups = cluster_fairness(data, clustering, G, pos_label=pos_label)
+    with warnings.catch_warnings():  # catch warnings in this block
+        warnings.simplefilter("ignore", category=UndefinedMetricWarning)
+        general_fairness, subgroup_fairness, priv_groups = cluster_fairness(data, clustering, g,
+                                                                                pos_label=pos_label)
 
     # Return results from subgroup fairness computation
-    return FairnessResult(general_fairness, subgroup_fairness, G, X, M)
+    return FairnessResult(general_fairness, subgroup_fairness, g, x, m)
 
 
 def benchmark_clustering(models, dataset, pos_label=1):

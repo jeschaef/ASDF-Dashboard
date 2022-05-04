@@ -40,6 +40,9 @@ class Dataset(db.Model):
     owner = db.Column(db.String(UUID_LENGTH), db.ForeignKey('user.id'), nullable=False)
     description = db.Column(db.Text)
     upload_date = db.Column(db.DateTime)
+    label_column = db.Column(db.String)
+    prediction_column = db.Column(db.String)
+
 
     def __init__(self, **kwargs):
         super(Dataset, self).__init__(**kwargs)
@@ -47,4 +50,5 @@ class Dataset(db.Model):
         self.upload_date = datetime.datetime.now()
 
     def __str__(self):
-        return f"Dataset[id={self.id}, name={self.name}, owner={self.owner}]"
+        return f"Dataset[id={self.id}, name={self.name}, owner={self.owner}, " \
+               f"label_column={self.label_column}, prediction_column={self.prediction_column}]"
