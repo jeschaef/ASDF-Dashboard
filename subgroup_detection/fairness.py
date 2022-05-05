@@ -347,9 +347,9 @@ class FairnessResult:
             "fair": self.fair.to_json(),
             "c_acc": self.c_acc.to_json(),
             "g_acc": self.g_acc.to_json(),
-            "subgroups": self.subgroups,
+            "subgroups": self.subgroups.to_json(),
             "duplication": self.duplication,
-            "clustering": self.clustering,
+            "clustering": self.clustering.tolist(),
             "cvi": self.cvi.to_json(),
             "raw": self.raw.to_json()
         })

@@ -134,7 +134,7 @@ class UploadDatasetForm(RedirectForm):
             return False
 
         # Validate that either label_column is given (& contained in df) or df contains column 'class'
-        if self.label_column.data is None and 'class' not in df.columns:
+        if self.label_column.data == "" and 'class' not in df.columns:
             self.label_column.errors.append("If no column named 'class' is contained in the data, "
                                             "a class label column must be provided")
             return False
@@ -144,7 +144,7 @@ class UploadDatasetForm(RedirectForm):
             return False
 
         # Validate that either prediction_column is given (& contained in df) or df contains column 'out'
-        if self.prediction_column.data is None and 'out' not in df.columns:
+        if self.prediction_column.data == "" and 'out' not in df.columns:
             self.prediction_column.errors.append("If no column named 'out' is contained in the data, "
                                             "a prediction label column must be provided")
             return False

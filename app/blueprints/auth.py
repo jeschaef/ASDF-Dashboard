@@ -4,7 +4,7 @@ import uuid
 from flask import Blueprint, render_template, flash, redirect, url_for
 from flask_login import login_user, login_required, logout_user, current_user
 
-from app import db
+from app.db import db
 from app.auth import get_hashed_password
 from app.blueprints.forms import RegisterForm, LoginForm
 from app.blueprints.util import redirect_url

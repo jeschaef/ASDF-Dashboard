@@ -10,7 +10,7 @@ from app.db import db
 from app.blueprints.forms import UploadDatasetForm
 from app.blueprints.util import load_data, delete_data
 from app.model import Dataset
-from app.tasks import fairness_analysis, test_task
+from app.tasks import fairness_analysis
 from app.util import ensure_exists_folder
 from subgroup_detection.fairness import FairnessResult
 
@@ -53,6 +53,7 @@ def datasets():
         # Save data file in user_folder
         f = form.dataset.data
         file_path = os.path.join(user_folder, new_dataset.id + '.csv')
+        f.seek(0)       # to avoid storing an empty file
         f.save(file_path)
         if not os.path.exists(file_path):
             db.session.delete(new_dataset)
@@ -178,12 +179,7 @@ def evaluation():
         data = load_data(owner, dataset.id)
         fair_json = fairness_analysis.delay(data.to_json()).get()      # json serialization is required
         fair_res = FairnessResult.from_json(fair_json)
-        log.debug(f"Got fairness result: {fair_res.get()}")
-        log.debug(f"{type(fair_res)}")
-
-        r = test_task.delay()
-        log.debug(f"Test task {r}")
-        log.debug(r.get())
+        log.debug(f"Got fairness result: {fair_res}")
 
         # Chart data from fairness evaluation result
         chart_data = {

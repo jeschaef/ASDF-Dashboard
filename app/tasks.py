@@ -12,15 +12,9 @@ log = get_task_logger(__name__)
 @celery_app.task()
 def fairness_analysis(df_json, pos_label=1, threshold=0.65):
     data = pd.read_json(df_json)
-    log.info(f"fairness_analysis: Got dataframe {data}")
     # model = AgglomerativeClustering(n_clusters=50, linkage='single')
     model = KMeans(n_clusters=50)
     log.info("fairness_analysis: Computed model")
     fair_res = test_model_fairness(model, data, pos_label=pos_label, threshold=threshold)
     return fair_res.to_json()
 
-
-@celery_app.task()
-def test_task():
-    log.info("Starting test task")
-    return "Test passed"

@@ -37,6 +37,7 @@ def load_data(owner, dataset):
     log.debug(f"Loading data from file {file_path}")
     with open(file_path, 'r') as f:
         f.seek(0)       # reset buffer to avoid EmptyDataError
+        log.debug(f)
         return pd.read_csv(f)
 
 
