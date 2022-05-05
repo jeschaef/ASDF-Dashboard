@@ -1,6 +1,14 @@
 # FairnessFrontend
 
+Redis docker:
 
+`docker pull redis`
+
+`docker run --name redis -p 6379:6379 -d redis`
+
+Start celery worker on Windows (from project root):
+
+`celery -A app.celery_app worker -P solo -l info`
 
 ## Getting started
 
