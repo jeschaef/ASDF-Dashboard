@@ -3,34 +3,56 @@ import logging.config
 import os
 
 from flask import Flask
-from flask_debugtoolbar import DebugToolbarExtension
 
 from app.auth import login_mngr
-from app.cache import cache
-from app.mail import mail
-from app.db import db
-from app.util import ensure_exists_folder
-
-from app.blueprints.main import main as main_blueprint
 from app.blueprints.auth import auth as auth_blueprint
 from app.blueprints.dashboard import dashboard as dashboard_blueprint
+from app.blueprints.main import main as main_blueprint
+from app.cache import cache
+from app.config import Config
+from app.db import db
+from app.mail import mail
+from app.util import ensure_exists_folder
 
-# Debug toolbar
-# toolbar = DebugToolbarExtension()
+from app.celery_app import celery_app
 
 
-def create_app(test_config=None):
+def setup_logging(app, app_root):
+    log_conf_path = os.path.join(app_root, "conf", "logging.conf")
+    log_file_path = os.path.join(app_root, "log", "demo.log")
+
+    logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path})
+    return app.logger
+
+
+def register_extensions(app):
+    db.init_app(app)
+    # toolbar.init_app(app)
+    login_mngr.init_app(app)
+    mail.init_app(app)
+    cache.init_app(app)
+
+
+def register_blueprints(app):
+    app.register_blueprint(main_blueprint)
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(dashboard_blueprint)
+
+
+def setup_db(app):
+    # db.drop_all(app=app)
+    db.create_all(app=app)  # create db
+    app.logger.debug("Setup db")
+
+
+def create_app(config):
     # filenames for loading the config are assumed to be relative to the instance path
     # instead of the application root
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_mapping(
-        SECRET_KEY='dev',  # TODO setup appropriate secret
-        # DATABASE=os.path.join(app.instance_path, 'app.sqlite'),
+    app.config.from_object(config)
+    app.config.update(
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        TESTING=True,
         UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
-        ALLOWED_EXTENSIONS={'csv'}
     )
     app_root = os.path.dirname(app.instance_path)  # App root folder
 
@@ -40,43 +62,28 @@ def create_app(test_config=None):
     ensure_exists_folder(app.config['UPLOAD_FOLDER'])
 
     # Configure logging
-    log_conf_path = os.path.join(app_root, "conf", "logging.conf")
-    log_file_path = os.path.join(app_root, "log", "demo.log")
-
-    logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path})
-    log = app.logger
+    log = setup_logging(app, app_root)
     log.debug('Configured logging')
 
     # Debug mode
     app.debug = True
 
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        # app.config.from_pyfile('config.py', silent=True)
-        pass
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
+    # Register extensions, blueprints
+    register_extensions(app)
+    log.debug('Registered extensions')
 
-    # init extensions
-    db.init_app(app)
-    # toolbar.init_app(app)
-    login_mngr.init_app(app)
-    mail.init_app(app)
-    cache.init_app(app)
-    log.debug('Initialized flask extensions')
+    register_blueprints(app)
+    log.debug('Registered blueprints')
 
-    # register blueprints
-    app.register_blueprint(main_blueprint)
-    app.register_blueprint(auth_blueprint)
-    app.register_blueprint(dashboard_blueprint)
+    # Setup database
+    setup_db(app)
+
+    # Celery
+    celery_app.conf.update(app.config)
 
     return app
 
 
 if __name__ == '__main__':
-    app = create_app()
-    # db.drop_all(app=app)
-    db.create_all(app=app)  # create db
-    app.logger.debug("Created db")
+    app = create_app(Config)
     app.run()

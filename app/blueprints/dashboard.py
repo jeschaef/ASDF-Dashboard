@@ -1,23 +1,24 @@
 import json
 import logging
 import os
-import pandas as pd
 
-from flask import Blueprint, render_template, current_app, url_for, request
+from flask import Blueprint, render_template, current_app, url_for, request, abort, Response
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
-from app import db, ensure_exists_folder, cache
+from app.db import db
 from app.blueprints.forms import UploadDatasetForm
 from app.blueprints.util import load_data, delete_data
 from app.model import Dataset
+from app.tasks import fairness_analysis, test_task
+from app.util import ensure_exists_folder
+from subgroup_detection.fairness import FairnessResult
 
-# TODO fix layout of dashboard (fullscreen, scrollable)
 dashboard = Blueprint('dashboard', __name__)
 log = logging.getLogger()
 
 
-@dashboard.route('/dashboard')
+@dashboard.route('/dashboard')  # TODO fix layout of dashboard (fullscreen, scrollable)
 @login_required
 def index():
     return render_template('dashboard/index.html')
@@ -32,11 +33,13 @@ def datasets():
     if form.validate_on_submit():
 
         # Create dataset object from inputs
-        f = form.dataset.data
-        columns = pd.read_csv(f, header=0, nrows=0).columns.tolist()
+        # columns = pd.read_csv(f, header=0, nrows=0).columns.tolist()
         name = form.name.data
         description = form.description.data
-        new_dataset = Dataset(name=name, owner=owner, description=description)
+        label_column = form.label_column.data
+        prediction_column = form.prediction_column.data
+        new_dataset = Dataset(name=name, owner=owner, description=description, label_column=label_column,
+                              prediction_column=prediction_column)
 
         # Add dataset object to database
         db.session.add(new_dataset)
@@ -48,6 +51,7 @@ def datasets():
         ensure_exists_folder(user_folder)
 
         # Save data file in user_folder
+        f = form.dataset.data
         file_path = os.path.join(user_folder, new_dataset.id + '.csv')
         f.save(file_path)
         if not os.path.exists(file_path):
@@ -107,7 +111,7 @@ def inspect():
         # TODO dataset name does not match any of the datasets
 
     # Load data columns+types (cached)
-    columns = load_data(owner, dataset.id).dtypes
+    columns = load_data(owner, dataset.id).dtypes  # TODO try catch
     # log.debug(f"{type(columns)}: {columns}")
 
     # TODO wait for bug fix in bootstrap-table with url+pagination and filter-control
@@ -131,7 +135,7 @@ def raw_data(name):
     # Query dataset object from database and load data
     owner = current_user.id
     d = Dataset.query.filter_by(owner=owner, name=name).first_or_404()
-    data = load_data(owner, d.id)
+    data = load_data(owner, d.id)  # TODO try catch
 
     # Paginate & sort loaded data
     total_rows = len(data)
@@ -149,7 +153,56 @@ def raw_data(name):
     return json.dumps(server_side_format, indent=4)
 
 
-@dashboard.route('/dashboard/evaluation')
+@dashboard.route('/dashboard/evaluation', methods=['GET', 'POST'])
 @login_required
 def evaluation():
-    return render_template('dashboard/evaluation.html')
+    # Get all the user's datasets
+    owner = current_user.id
+    all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.name).all()  # TODO no datasets available
+
+    # Perform the fairness analysis on the selected dataset on POST
+    if request.method == 'POST':
+
+        # Selected dataset name
+        selected_name = request.form.get('dataset')
+
+        # Get dataset by name
+        dataset = None
+        for d in all_datasets:
+            if d.name == selected_name:
+                dataset = d
+        if dataset is None:
+            return abort(Response(f"No dataset found with name {selected_name}"))
+
+        # Perform fairness analysis
+        data = load_data(owner, dataset.id)
+        fair_json = fairness_analysis.delay(data.to_json()).get()      # json serialization is required
+        fair_res = FairnessResult.from_json(fair_json)
+        log.debug(f"Got fairness result: {fair_res.get()}")
+        log.debug(f"{type(fair_res)}")
+
+        r = test_task.delay()
+        log.debug(f"Test task {r}")
+        log.debug(r.get())
+
+        # Chart data from fairness evaluation result
+        chart_data = {
+            'labels': ['January', 'February', 'March', 'April'],
+            'datasets': [{
+                'type': 'bar',
+                'label': 'Bar Dataset',
+                'data': [10, 20, 30, 40]
+            }, {
+                'type': 'line',
+                'label': 'Line Dataset',
+                'data': [50, 50, 50, 50]
+            }]
+        }
+
+    # Simply select one dataset (lexicographically first) on GET
+    else:
+        dataset = all_datasets[0]
+        chart_data = None
+
+    return render_template('dashboard/evaluation.html', all_datasets=all_datasets, dataset=dataset,
+                           chart_data=chart_data)

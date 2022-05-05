@@ -1,3 +1,4 @@
+import json
 import warnings
 
 import sklearn.base
@@ -254,7 +255,7 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
                                                                                 pos_label=pos_label)
 
     # Return results from subgroup fairness computation
-    return FairnessResult(general_fairness, subgroup_fairness, g, x, m)
+    return FairnessResult.create(general_fairness, subgroup_fairness, g, x, m)
 
 
 def benchmark_clustering(models, dataset, pos_label=1):
@@ -296,10 +297,12 @@ def benchmark_clustering(models, dataset, pos_label=1):
     return best_fair, max_error, max_sil, best_params
 
 
-class FairnessResult():
+class FairnessResult:
 
-    def __init__(self, general_fairness, subgroup_fairness, G, X, M):
-        self.fair = DataFrame(data={'mean': subgroup_fairness.mean().values,
+    @classmethod
+    def create(cls, general_fairness, subgroup_fairness, g, x, m):
+        res = cls()
+        res.fair = DataFrame(data={'mean': subgroup_fairness.mean().values,
                                     'std': subgroup_fairness.std().values,
                                     'abs_mean': subgroup_fairness.abs().mean().values,
                                     'abs_std': subgroup_fairness.abs().std().values},
@@ -307,7 +310,7 @@ class FairnessResult():
 
         # Accuracy error (cluster)
         c_acc_err = subgroup_fairness.c_acc - general_fairness.accuracy.iloc[0]
-        self.c_acc = Series(data={'min_err': c_acc_err.min(),
+        res.c_acc = Series(data={'min_err': c_acc_err.min(),
                                   'max_err': c_acc_err.max(),
                                   'mean_err': c_acc_err.mean(),
                                   'std_err': c_acc_err.std(),
@@ -316,7 +319,7 @@ class FairnessResult():
 
         # Accuracy error (group)
         g_acc_err = subgroup_fairness.g_acc - general_fairness.accuracy.iloc[0]
-        self.g_acc = Series(data={'min_err': g_acc_err.min(),
+        res.g_acc = Series(data={'min_err': g_acc_err.min(),
                                   'max_err': g_acc_err.max(),
                                   'mean_err': g_acc_err.mean(),
                                   'std_err': g_acc_err.std(),
@@ -324,13 +327,46 @@ class FairnessResult():
                                   'std_abs_err': g_acc_err.abs().std()})
 
         # Groups
-        self.subgroups = G
-        self.duplication = subgroup_fairness.g_acc.isna().sum() / len(G)  # rate of duplicate groups
+        res.subgroups = g
+        res.duplication = subgroup_fairness.g_acc.isna().sum() / len(g)  # rate of duplicate groups
 
         # Cluster validation
-        self.model = M
-        self.clustering = M.labels_
-        self.cvi = validate_clustering(X, M.labels_)
+        # res.model = m        # cannot be serialized easily
+        res.clustering = m.labels_
+        res.cvi = validate_clustering(x, m.labels_)
 
         # Raw data
-        self.raw = subgroup_fairness
+        res.raw = subgroup_fairness
+
+        return res
+
+
+    def to_json(self):
+        print(type(self.subgroups), type(self.cvi))
+        return json.dumps({
+            "fair": self.fair.to_json(),
+            "c_acc": self.c_acc.to_json(),
+            "g_acc": self.g_acc.to_json(),
+            "subgroups": self.subgroups,
+            "duplication": self.duplication,
+            "clustering": self.clustering,
+            "cvi": self.cvi.to_json(),
+            "raw": self.raw.to_json()
+        })
+
+
+    @classmethod
+    def from_json(cls, fair_json):
+        res = cls()
+        parsed = json.loads(fair_json)
+
+        res.fair = parsed["fair"]
+        res.c_acc = parsed["c_acc"]
+        res.g_acc = parsed["g_acc"]
+        res.subgroups = parsed["subgroups"]
+        res.duplication = parsed["duplication"]
+        res.clustering = parsed["clustering"]
+        res.cvi = parsed["cvi"]
+        res.raw = parsed["raw"]
+
+        return res
