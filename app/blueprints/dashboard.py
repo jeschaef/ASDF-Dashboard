@@ -53,7 +53,7 @@ def datasets():
         # Save data file in user_folder
         f = form.dataset.data
         file_path = os.path.join(user_folder, new_dataset.id + '.csv')
-        f.seek(0)       # to avoid storing an empty file
+        f.seek(0)  # to avoid storing an empty file
         f.save(file_path)
         if not os.path.exists(file_path):
             db.session.delete(new_dataset)
@@ -154,32 +154,16 @@ def raw_data(name):
     return json.dumps(server_side_format, indent=4)
 
 
-@dashboard.route('/dashboard/evaluation', methods=['GET', 'POST'])
+@dashboard.route('/dashboard/fairness', methods=['GET', 'POST'])
 @login_required
-def evaluation():
+def fairness():
+
     # Get all the user's datasets
     owner = current_user.id
     all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.name).all()  # TODO no datasets available
 
-    # Perform the fairness analysis on the selected dataset on POST
+    # Display progress/results of fairness analysis task on POST request
     if request.method == 'POST':
-
-        # Selected dataset name
-        selected_name = request.form.get('dataset')
-
-        # Get dataset by name
-        dataset = None
-        for d in all_datasets:
-            if d.name == selected_name:
-                dataset = d
-        if dataset is None:
-            return abort(Response(f"No dataset found with name {selected_name}"))
-
-        # Perform fairness analysis
-        data = load_data(owner, dataset.id)
-        fair_json = fairness_analysis.delay(data.to_json()).get()      # json serialization is required
-        fair_res = FairnessResult.from_json(fair_json)
-        log.debug(f"Got fairness result: {fair_res}")
 
         # Chart data from fairness evaluation result
         chart_data = {
@@ -195,10 +179,7 @@ def evaluation():
             }]
         }
 
-    # Simply select one dataset (lexicographically first) on GET
     else:
-        dataset = all_datasets[0]
         chart_data = None
 
-    return render_template('dashboard/evaluation.html', all_datasets=all_datasets, dataset=dataset,
-                           chart_data=chart_data)
+    return render_template('dashboard/fairness.html', all_datasets=all_datasets, chart_data=chart_data)

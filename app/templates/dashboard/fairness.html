@@ -2,17 +2,13 @@
 
 {% block inner_content %}
 <div class="flex-fill justify-content-between align-items-center p-3">
-    <form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.evaluation') }}">
+    <form>
         <div class="row">
             <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
             <div class="col-sm-3">
                 <select class="form-select form-select-lg" id="dataset-select" name="dataset">
                     {% for d in all_datasets %}
-                        {% if d.name == dataset.name %}
-                            <option value="{{ d.name }}" selected>{{ d.name }}</option>
-                        {% else %}
-                            <option value="{{ d.name }}">{{ d.name }}</option>
-                        {% endif %}
+                    <option value="{{ d.id }}">{{ d.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -31,10 +27,14 @@
 
         </div>
         <div class="row">
-            <input class="form-control-lg btn btn-lg btn-primary col-sm-2" id="submit" name="submit" type="submit"
+            <input class="form-control-lg btn btn-lg btn-primary col-sm-2" id="task-submit" name="submit" type="button"
                    value="Evaluate Fairness"/>
         </div>
     </form>
+
+    <div class="alert alert-info" id="task-status" role="alert">
+        Display progress information
+    </div>
 
     <div>
         <canvas id="chart"></canvas>
@@ -48,7 +48,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"
         integrity="sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=" crossorigin="anonymous"></script>
 <script>
-    let chart_data = JSON.parse('{{chart_data | tojson}}')
+    let chart_data = JSON.parse('{{ chart_data | tojson}}')
+    // let task_started = JSON.parse('{{ task_id is not none | tojson }}')
+    const start_task_url = JSON.parse('{{ url_for("task.start_fairness_task") | tojson }}')
 </script>
-<script src="{{ url_for('static', filename='js/evaluation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/fairness.js') }}"></script>
 {% endblock %}

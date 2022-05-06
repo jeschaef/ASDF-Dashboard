@@ -1,19 +1,18 @@
 import json
 import warnings
+from typing import Callable
 
-import sklearn.base
+import pandas as pd
 from aif360.sklearn import metrics as mtr
 from aif360.sklearn.utils import check_groups
-from sklearn.exceptions import UndefinedMetricWarning
-from sklearn.metrics import accuracy_score, f1_score, silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from sklearn.base import ClusterMixin
-import pandas as pd
 from pandas import DataFrame, Series
-import numpy as np
+from sklearn.base import ClusterMixin
+from sklearn.exceptions import UndefinedMetricWarning
+from sklearn.metrics import accuracy_score, f1_score
 
+from subgroup_detection.clustering import *
 from subgroup_detection.entropy import *
 from subgroup_detection.util import *
-from subgroup_detection.clustering import *
 
 
 def ground_truth_protected(data, protected):
@@ -216,7 +215,7 @@ def print_cluster_fairness(data, cluster_labels, groups, pos_label):
         print('\tAccuracy:', '%.4f' % row.c_acc, '(cluster),', row.g_acc, '(group)')
 
 
-def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=None):
+def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=None, progress=lambda msg: None):
     """
 
     @param model: Clustering model to train on the data
@@ -231,10 +230,13 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     @param categ_columns: List of categorical columns or None. If None, then all columns
     with type 'category' or 'object' are encoded
     @type categ_columns: None or list of str
+    @param progress: Callback function to report progress on the task instance (celery)
+    @type progress: Callable[str, None]
     @return: Model fairness and other statistics
     @rtype: FairnessResult
     """
     # Train clustering model
+    progress('Training clustering model ...')
     x = prepare(data, categ_columns)
     m = model.fit(x)
     clustering = m.labels_
@@ -246,15 +248,15 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     # data_clustered = data_clustered[data_clustered['cluster'] >= 0]  # remove outliers (cluster -1)
 
     # Subgroups via normalized cluster entropy
+    progress('Computing entropy-based subgroups ...')
     g = normalized_entropy_groups(data_clustered, threshold=threshold)
 
     # Compute fairness metrics
+    progress('Computing subgroup fairness metrics ...')
     with warnings.catch_warnings():  # catch warnings in this block
         warnings.simplefilter("ignore", category=UndefinedMetricWarning)
-        general_fairness, subgroup_fairness, priv_groups = cluster_fairness(data, clustering, g,
-                                                                                pos_label=pos_label)
+        general_fairness, subgroup_fairness, priv_groups = cluster_fairness(data, clustering, g, pos_label=pos_label)
 
-    # Return results from subgroup fairness computation
     return FairnessResult.create(general_fairness, subgroup_fairness, g, x, m)
 
 
@@ -303,28 +305,28 @@ class FairnessResult:
     def create(cls, general_fairness, subgroup_fairness, g, x, m):
         res = cls()
         res.fair = DataFrame(data={'mean': subgroup_fairness.mean().values,
-                                    'std': subgroup_fairness.std().values,
-                                    'abs_mean': subgroup_fairness.abs().mean().values,
-                                    'abs_std': subgroup_fairness.abs().std().values},
-                              index=subgroup_fairness.columns)
+                                   'std': subgroup_fairness.std().values,
+                                   'abs_mean': subgroup_fairness.abs().mean().values,
+                                   'abs_std': subgroup_fairness.abs().std().values},
+                             index=subgroup_fairness.columns)
 
         # Accuracy error (cluster)
         c_acc_err = subgroup_fairness.c_acc - general_fairness.accuracy.iloc[0]
         res.c_acc = Series(data={'min_err': c_acc_err.min(),
-                                  'max_err': c_acc_err.max(),
-                                  'mean_err': c_acc_err.mean(),
-                                  'std_err': c_acc_err.std(),
-                                  'mean_abs_err': c_acc_err.abs().mean(),
-                                  'std_abs_err': c_acc_err.abs().std()})
+                                 'max_err': c_acc_err.max(),
+                                 'mean_err': c_acc_err.mean(),
+                                 'std_err': c_acc_err.std(),
+                                 'mean_abs_err': c_acc_err.abs().mean(),
+                                 'std_abs_err': c_acc_err.abs().std()})
 
         # Accuracy error (group)
         g_acc_err = subgroup_fairness.g_acc - general_fairness.accuracy.iloc[0]
         res.g_acc = Series(data={'min_err': g_acc_err.min(),
-                                  'max_err': g_acc_err.max(),
-                                  'mean_err': g_acc_err.mean(),
-                                  'std_err': g_acc_err.std(),
-                                  'mean_abs_err': g_acc_err.abs().mean(),
-                                  'std_abs_err': g_acc_err.abs().std()})
+                                 'max_err': g_acc_err.max(),
+                                 'mean_err': g_acc_err.mean(),
+                                 'std_err': g_acc_err.std(),
+                                 'mean_abs_err': g_acc_err.abs().mean(),
+                                 'std_abs_err': g_acc_err.abs().std()})
 
         # Groups
         res.subgroups = g
@@ -340,9 +342,7 @@ class FairnessResult:
 
         return res
 
-
     def to_json(self):
-        print(type(self.subgroups), type(self.cvi))
         return json.dumps({
             "fair": self.fair.to_json(),
             "c_acc": self.c_acc.to_json(),
@@ -353,7 +353,6 @@ class FairnessResult:
             "cvi": self.cvi.to_json(),
             "raw": self.raw.to_json()
         })
-
 
     @classmethod
     def from_json(cls, fair_json):

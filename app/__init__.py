@@ -8,6 +8,7 @@ from app.auth import login_mngr
 from app.blueprints.auth import auth as auth_blueprint
 from app.blueprints.dashboard import dashboard as dashboard_blueprint
 from app.blueprints.main import main as main_blueprint
+from app.blueprints.task import task as task_blueprint
 from app.cache import cache
 from app.config import Config
 from app.db import db
@@ -37,6 +38,7 @@ def register_blueprints(app):
     app.register_blueprint(main_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(dashboard_blueprint)
+    app.register_blueprint(task_blueprint)
 
 
 def setup_db(app):
