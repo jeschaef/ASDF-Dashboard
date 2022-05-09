@@ -2,23 +2,21 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, current_app, url_for, request, abort, Response
+from flask import Blueprint, render_template, current_app, url_for, request
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
-from app.db import db
 from app.blueprints.forms import UploadDatasetForm
 from app.blueprints.util import load_data, delete_data
+from app.db import db
 from app.model import Dataset
-from app.tasks import fairness_analysis
 from app.util import ensure_exists_folder
-from subgroup_detection.fairness import FairnessResult
 
 dashboard = Blueprint('dashboard', __name__)
 log = logging.getLogger()
 
 
-@dashboard.route('/dashboard')  # TODO fix layout of dashboard (fullscreen, scrollable)
+@dashboard.route('/dashboard')
 @login_required
 def index():
     return render_template('dashboard/index.html')
@@ -115,7 +113,6 @@ def inspect():
     columns = load_data(owner, dataset.id).dtypes  # TODO try catch
     # log.debug(f"{type(columns)}: {columns}")
 
-    # TODO wait for bug fix in bootstrap-table with url+pagination and filter-control
     # TODO fix missing icons
     return render_template('dashboard/inspect.html', all_datasets=all_datasets, dataset=dataset, columns=columns)
 
@@ -131,12 +128,20 @@ def raw_data(name):
     limit = int(limit) if limit else 10
     sort = request.args.get('sort')
     order = request.args.get('order')
-    filter = request.args.get('filter')  # TODO apply filter
+    filter = request.args.get('filter')
 
     # Query dataset object from database and load data
     owner = current_user.id
     d = Dataset.query.filter_by(owner=owner, name=name).first_or_404()
     data = load_data(owner, d.id)  # TODO try catch
+
+    # Apply filter
+    if filter:
+        log.debug(f"Filter {filter} {type(filter)}")
+        filter = json.loads(filter)
+        log.debug(f"Filter {filter} {type(filter)}")
+        for c, f in filter.items():
+            data = data[data[c].astype(str).str.contains(f)]
 
     # Paginate & sort loaded data
     total_rows = len(data)
