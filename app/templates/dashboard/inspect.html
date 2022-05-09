@@ -7,51 +7,49 @@
 {% endblock %}
 
 {% block inner_content %}
-<div class="flex-fill justify-content-between align-items-center p-3">
 
-    <form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.inspect') }}">
-        <div class="row">
-            <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
-            <div class="col-sm-3">
-                <select class="form-select form-select-lg" id="dataset-select" name="dataset">
-                    {% for d in all_datasets %}
-                        {% if d.name == dataset.name %}
-                            <option value="{{ d.name }}" selected>{{ d.name }}</option>
-                        {% else %}
-                            <option value="{{ d.name }}">{{ d.name }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
+<form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.inspect') }}">
+    <div class="row">
+        <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
+        <div class="col-sm-3">
+            <select class="form-select form-select-lg" id="dataset-select" name="dataset">
+                {% for d in all_datasets %}
+                {% if d.name == dataset.name %}
+                <option value="{{ d.name }}" selected>{{ d.name }}</option>
+                {% else %}
+                <option value="{{ d.name }}">{{ d.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
         </div>
-    </form>
+    </div>
+</form>
 
-    <table id="dstable"
-           data-toggle="table"
-           data-classes="table table-hover"
-           data-side-pagination="server"
-           data-pagination="true"
-           data-page-list="[5, 10, 25, 50, 100, all]"
-           data-url="{{ url_for('dashboard.raw_data', name=dataset.name) }}"
-           data-query-params="queryParams"
-           data-sort-reset="true"
-           data-show-search-clear-button="true"
-           data-filter-control="true"
-           data-show-filter-control-switch="true"
-           data-show-columns="true"
-           data-show-columns-toggle-all="true"
-           data-maintain-meta-data="true">
-        <thead>
-        <tr>
-            <!-- Column names -->
-            {% for cname, dtype in columns.items() %}
-            <th data-field="{{cname}}" data-sortable="true" data-filter-control="input">{{cname}}</th>
-            {% endfor %}
-        </tr>
-        </thead>
-    </table>
+<table id="dstable"
+       data-toggle="table"
+       data-classes="table table-hover"
+       data-side-pagination="server"
+       data-pagination="true"
+       data-page-list="[5, 10, 25, 50, 100, all]"
+       data-url="{{ url_for('dashboard.raw_data', name=dataset.name) }}"
+       data-query-params="queryParams"
+       data-sort-reset="true"
+       data-show-search-clear-button="true"
+       data-filter-control="true"
+       data-show-filter-control-switch="true"
+       data-show-columns="true"
+       data-show-columns-toggle-all="true"
+       data-maintain-meta-data="true">
+    <thead>
+    <tr>
+        <!-- Column names -->
+        {% for cname, dtype in columns.items() %}
+        <th data-field="{{cname}}" data-sortable="true" data-filter-control="input">{{cname}}</th>
+        {% endfor %}
+    </tr>
+    </thead>
+</table>
 
-</div>
 {% endblock %}
 
 

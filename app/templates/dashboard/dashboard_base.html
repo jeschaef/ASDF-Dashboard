@@ -15,29 +15,14 @@
 {% endblock %}
 
 
-<!--  -->
-
-
 <!-- Content -->
 {% block content %}
 {% include 'dashboard/dashboard_svg.html' %}
 
-<!--<header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">-->
-<!--    <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="#">Company name</a>-->
-<!--    <span class="navbar-text col-md-8 col-lg-9">-->
-<!--        <h1>Text</h1>-->
-<!--    </span>-->
-<!--    <div class="navbar-nav">-->
-<!--        <div class="nav-item text-nowrap">-->
-<!--            <a class="nav-link px-3" href="{{ url_for('auth.logout') }}">Sign out</a>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</header>-->
-
 
 <div class="container-fluid p-0">
-    <main>
-        <div class="d-flex flex-column flex-shrink-0 bg-light" style="width: 4.5rem;">
+    <main class="main">
+        <div class="d-flex flex-column bg-light mysidebar">
             <a href="{{ url_for('main.index') }}" class="d-block p-3 link-dark text-decoration-none border-bottom">
                 <svg class="bi" width="40" height="32">
                     <use xlink:href="#bootstrap"/>
@@ -106,8 +91,10 @@
 
 
         <!--        <div class="col-md-10 col-lg-11">-->
+        <div class="p-3 dashboard-content">
         {% block inner_content %}
         {% endblock %}
+        </div>
         <!--        </div>-->
 
 

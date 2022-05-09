@@ -5,78 +5,76 @@
 
 
 {% block inner_content %}
-<div class="flex-fill justify-content-between align-items-center p-3">
-    <h1 class="h1">Datasets</h1>
+<h1 class="h1">Datasets</h1>
 
-    <div class="pt-5">
-        <h1 class="h4">Upload a dataset</h1>
+<div class="pt-5">
+    <h1 class="h4">Upload a dataset</h1>
 
-        <form method="POST" enctype=multipart/form-data>
-            {{ form.csrf_token() }}
+    <form method="POST" enctype=multipart/form-data>
+        {{ form.csrf_token() }}
 
-            {{ render_field(form.dataset, form.is_submitted()) }}
-            {{ render_field(form.name, form.is_submitted()) }}
-            {{ render_field(form.description, form.is_submitted()) }}
-            {{ render_field(form.label_column, form.is_submitted()) }}
-            {{ render_field(form.prediction_column, form.is_submitted()) }}
+        {{ render_field(form.dataset, form.is_submitted()) }}
+        {{ render_field(form.name, form.is_submitted()) }}
+        {{ render_field(form.description, form.is_submitted()) }}
+        {{ render_field(form.label_column, form.is_submitted()) }}
+        {{ render_field(form.prediction_column, form.is_submitted()) }}
 
-            {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
-        </form>
-    </div>
-
-    <div class="pt-5">
-        <h1 class="h4">View your datasets</h1>
-
-        <div id="toolbar">
-            <button id="remove" class="btn btn-danger" disabled>
-                <svg class="bi" width="16" height="16">
-                    <use xlink:href="#trash-fill"/>
-                </svg>
-                Delete
-            </button>
-        </div>
-        <table id="dstable"
-               data-toggle="table"
-               data-toolbar="#toolbar"
-               data-classes="table table-hover"
-               data-search="true"
-               data-pagination="true"
-               data-page-list="[5, 10, 25, 50, 100, all]"
-               data-maintain-meta-data="true"
-               data-select-item-name="state"
-               data-click-to-select="true"
-               url-remove="{{ url_for('dashboard.delete_dataset') }}"
-               url-inspect="{{ url_for('dashboard.inspect') }}" >
-            <thead>
-            <tr>
-                <th data-field="state" data-checkbox="true"></th>
-                <th data-field="name" >Name</th>
-                <th data-field="description" >Description</th>
-                <th data-field="date" >Upload date</th>
-                <th data-field="label-col">Label column</th>
-                <th data-field="prediction-col">Prediction column</th>
-                <th data-field="operations" data-formatter="operationFormatter" data-events="operateEvents"
-                    data-align="center">Operations
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for d in datasets %}
-            <tr>
-                <td class="bs-checkbox"></td>
-                <td>{{ d.name }}</td>
-                <td>{{ d.description }}</td>
-                <td>{{ d.upload_date }}</td>
-                <td>{{ d.label_column }}</td>
-                <td>{{ d.prediction_column }}</td>
-                <td></td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
+        {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
+    </form>
 </div>
+
+<div class="pt-5">
+    <h1 class="h4">View your datasets</h1>
+
+    <div id="toolbar">
+        <button id="remove" class="btn btn-danger" disabled>
+            <svg class="bi" width="16" height="16">
+                <use xlink:href="#trash-fill"/>
+            </svg>
+            Delete
+        </button>
+    </div>
+    <table id="dstable"
+           data-toggle="table"
+           data-toolbar="#toolbar"
+           data-classes="table table-hover"
+           data-search="true"
+           data-pagination="true"
+           data-page-list="[5, 10, 25, 50, 100, all]"
+           data-maintain-meta-data="true"
+           data-select-item-name="state"
+           data-click-to-select="true"
+           url-remove="{{ url_for('dashboard.delete_dataset') }}"
+           url-inspect="{{ url_for('dashboard.inspect') }}">
+        <thead>
+        <tr>
+            <th data-field="state" data-checkbox="true"></th>
+            <th data-field="name">Name</th>
+            <th data-field="description">Description</th>
+            <th data-field="date">Upload date</th>
+            <th data-field="label-col">Label column</th>
+            <th data-field="prediction-col">Prediction column</th>
+            <th data-field="operations" data-formatter="operationFormatter" data-events="operateEvents"
+                data-align="center">Operations
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for d in datasets %}
+        <tr>
+            <td class="bs-checkbox"></td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.description }}</td>
+            <td>{{ d.upload_date }}</td>
+            <td>{{ d.label_column }}</td>
+            <td>{{ d.prediction_column }}</td>
+            <td></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}
 
 {% block scripts %}

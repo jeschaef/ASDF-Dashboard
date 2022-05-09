@@ -1,44 +1,42 @@
 {% extends "dashboard/dashboard_base.html" %}
 
 {% block inner_content %}
-<div class="flex-fill justify-content-between align-items-center p-3">
-    <form>
-        <div class="row">
-            <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
-            <div class="col-sm-3">
-                <select class="form-select form-select-lg" id="dataset-select" name="dataset">
-                    {% for d in all_datasets %}
-                    <option value="{{ d.id }}">{{ d.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+<form>
+    <div class="row">
+        <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
+        <div class="col-sm-3">
+            <select class="form-select form-select-lg" id="dataset-select" name="dataset">
+                {% for d in all_datasets %}
+                <option value="{{ d.id }}">{{ d.name }}</option>
+                {% endfor %}
+            </select>
         </div>
-        <div class="row">
-            <p>
-                Additional parameters/selections/customization
-
-                Categorical columns
-
-                Threshold
-
-                Positive (favorable) label
-            </p>
-
-
-        </div>
-        <div class="row">
-            <input class="form-control-lg btn btn-lg btn-primary col-sm-2" id="task-submit" name="submit" type="button"
-                   value="Evaluate Fairness"/>
-        </div>
-    </form>
-
-    <div class="alert alert-info" id="task-status" role="alert" style="display: none;">
-        Display progress information
     </div>
+    <div class="row">
+        <p>
+            Additional parameters/selections/customization
 
-    <div>
-        <canvas id="chart"></canvas>
+            Categorical columns
+
+            Threshold
+
+            Positive (favorable) label
+        </p>
+
+
     </div>
+    <div class="row">
+        <input class="form-control-lg btn btn-lg btn-primary col-sm-2" id="task-submit" name="submit" type="button"
+               value="Evaluate Fairness"/>
+    </div>
+</form>
+
+<div class="alert alert-info" id="task-status" role="alert" style="display: none;">
+    Display progress information
+</div>
+
+<div>
+    <canvas id="chart"></canvas>
 </div>
 {% endblock %}
 
