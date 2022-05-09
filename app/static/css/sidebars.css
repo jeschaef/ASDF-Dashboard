@@ -16,18 +16,11 @@ main {
     --sidebar-width: 4.5rem;
 }
 
-.mysidebar {
-    position: fixed;
-    overflow-y: auto;
-    height: 100vh;
-    width: var(--sidebar-width);
-    padding-top: 0;
-}
 
 .dashboard-content {
-    margin-left: var(--sidebar-width);
     flex-grow: 1;
     overflow-y: auto;
+    z-index: -1;
 }
 
 .bi {

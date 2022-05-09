@@ -21,7 +21,7 @@
 
 <div class="container-fluid p-0">
     <main class="main">
-        <div class="d-flex flex-column bg-light mysidebar">
+        <div class="d-flex flex-column bg-light" style="position: relative;">
             <a href="{{ url_for('main.index') }}" class="d-block p-3 link-dark text-decoration-none border-bottom">
                 <svg class="bi" width="40" height="32">
                     <use xlink:href="#bootstrap"/>
@@ -68,7 +68,7 @@
                     </a>
                 </li>
             </ul>
-            <div class="dropdown border-top">
+            <div class="dropdown border-top" style="z-index: 1;">
                 <a href="#"
                    class="d-flex align-items-center justify-content-center p-3 link-primary text-decoration-none dropdown-toggle"
                    id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,7 +76,7 @@
                         <use xlink:href="#people-circle"/>
                     </svg>
                 </a>
-                <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser">
+                <ul class="dropdown-menu text-small shadow" style="position: absolute;" aria-labelledby="dropdownUser">
                     <li><a class="dropdown-item" href="#">New project...</a></li>
                     <li><a class="dropdown-item" href="#">Settings</a></li>
                     <li><a class="dropdown-item" href="#">Profile</a></li>
