@@ -44,9 +44,11 @@ function createChart(chart_data) {
 }
 
 
-function showStatus(status_msg) {
+function showStatus(status_msg, fades = false) {
     $status.show()
     $status.text(status_msg)
+    if (fades)
+        $status.fadeOut(5000)   // slowly fade out in 5s
 }
 
 
@@ -66,7 +68,7 @@ function startFairnessTask(event) {
             updateProgress(status_url);
         }
     ).done(function () {
-        alert('Done!')
+        // alert('Done!')
     }).fail(function () {
         alert('Failed!')
     })
@@ -80,7 +82,8 @@ function updateProgress(status_url) {
         // Update status info
         const state = data['state']
         const status = data['status']
-        showStatus("State=" + state + ": " + status)
+        const is_success = (state == 'SUCCESS')
+        showStatus("State=" + state + ": " + status, is_success)    // fade if success
 
         // Switch states
         if (state == 'SUCCESS') {
@@ -109,7 +112,12 @@ function updateProgress(status_url) {
 function displayResult(result) {
     console.log("Finished:", result)
 
+    console.log(result.clustering, typeof result.clustering)
+    const k = Math.max(result.clustering) + 1
+    console.log("Detected", k, "subgroups (clusters)")
     console.log(JSON.parse(result.c_acc))
+
+    console.log(JSON.parse(result.subgroups))
 }
 
 $(function () {
