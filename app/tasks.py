@@ -12,6 +12,8 @@ log = get_task_logger(__name__)
 @celery_app.task(bind=True)
 def fairness_analysis(self, df_json, pos_label=1, threshold=0.65):
 
+    log.info(f"Starting fairness analysis: pos_label={pos_label}, threshold={threshold}")
+
     def progress(status):
         self.update_state(state='PROGRESS', meta={'status': status})
 

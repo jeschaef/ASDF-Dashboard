@@ -169,22 +169,6 @@ def fairness():
 
     # Display progress/results of fairness analysis task on POST request
     if request.method == 'POST':
+        pass
 
-        # Chart data from fairness evaluation result
-        chart_data = {
-            'labels': ['January', 'February', 'March', 'April'],
-            'datasets': [{
-                'type': 'bar',
-                'label': 'Bar Dataset',
-                'data': [10, 20, 30, 40]
-            }, {
-                'type': 'line',
-                'label': 'Line Dataset',
-                'data': [50, 50, 50, 50]
-            }]
-        }
-
-    else:
-        chart_data = None
-
-    return render_template('dashboard/fairness.html', all_datasets=all_datasets, chart_data=chart_data)
+    return render_template('dashboard/fairness.html', all_datasets=all_datasets)

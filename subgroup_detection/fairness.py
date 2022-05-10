@@ -74,8 +74,8 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
     @type groups: DataFrame
     @param pos_label: Value of the predicted/true classification label (0 or 1)
     @type pos_label: int
-    @return: General fairness, subgroup fairness and protected groups
-    @rtype: (DataFrame, DataFrame, dict of dict)
+    @return: General fairness, subgroup fairness, protected groups and group sizes (entropy)
+    @rtype: (DataFrame, DataFrame, dict of dict, dict)
     """
     # Ground truth for clusters
     protected = ['cluster']
@@ -102,6 +102,7 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
     # Subgroup fairness metrics initialization
     num_cluster = max(cluster_labels) + 1
     priv_groups = {}
+    group_sizes = []
     is_duplicated = groups.duplicated()  # to skip duplicate subgroups
     subgroup_fairness = DataFrame(0, index=list(range(num_cluster)),
                                   columns=[  # 'priv_group',
@@ -128,7 +129,7 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
         # Skip empty or duplicate groups
         if group.empty or is_duplicated[i]:
             group_stat_par = group_eq_opp = group_avg_odds = group_acc = np.NaN
-
+            group_sizes.append(None)    # store size of group i
         else:
             group_protected = group.index.tolist()
 
@@ -141,6 +142,8 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
             group_gt = gt_group_prot[idx]  # ground truth for data in group only (subset of whole dataset)
             group_out = y_pred[idx]
 
+            group_sizes.append(len(group_gt))       # store size of group i
+
             # Compute group fairness
             group_stat_par, group_eq_opp, group_avg_odds, group_acc = \
                 _subgroup_fairness(gt_group_prot, y_pred, group_protected, group_pg, pos_label, group_gt, group_out)
@@ -149,7 +152,7 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
         subgroup_fairness.iloc[i] = [cluster_stat_par, cluster_eq_opp, cluster_avg_odds, cluster_acc,
                                      group_stat_par, group_eq_opp, group_avg_odds, group_acc]
 
-    return general_fairness, subgroup_fairness, priv_groups
+    return general_fairness, subgroup_fairness, priv_groups, group_sizes
 
 
 def _subgroup_fairness(y_true, y_pred, protected, pg, pos_label, group_true, group_pred):
@@ -191,7 +194,7 @@ def _subgroup_fairness(y_true, y_pred, protected, pg, pos_label, group_true, gro
 
 def print_cluster_fairness(data, cluster_labels, groups, pos_label):
     # Compute fairness metrics
-    general_fairness, subgroup_fairness = cluster_fairness(data, cluster_labels, groups, pos_label)
+    general_fairness, subgroup_fairness, _, _ = cluster_fairness(data, cluster_labels, groups, pos_label)
 
     # General metrics
     print('General metrics:')
@@ -255,9 +258,10 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     progress('Computing subgroup fairness metrics ...')
     with warnings.catch_warnings():  # catch warnings in this block
         warnings.simplefilter("ignore", category=UndefinedMetricWarning)
-        general_fairness, subgroup_fairness, priv_groups = cluster_fairness(data, clustering, g, pos_label=pos_label)
+        general_fairness, subgroup_fairness, priv_groups, group_sizes = \
+            cluster_fairness(data, clustering, g, pos_label=pos_label)
 
-    return FairnessResult.create(general_fairness, subgroup_fairness, g, x, m)
+    return FairnessResult.create(general_fairness, subgroup_fairness, group_sizes, g, x, m)
 
 
 def benchmark_clustering(models, dataset, pos_label=1):
@@ -302,7 +306,7 @@ def benchmark_clustering(models, dataset, pos_label=1):
 class FairnessResult:
 
     @classmethod
-    def create(cls, general_fairness, subgroup_fairness, g, x, m):
+    def create(cls, general_fairness, subgroup_fairness, group_sizes, g, x, m):
         res = cls()
         res.fair = DataFrame(data={'mean': subgroup_fairness.mean().values,
                                    'std': subgroup_fairness.std().values,
@@ -331,6 +335,7 @@ class FairnessResult:
         # Groups
         res.subgroups = g
         res.duplication = subgroup_fairness.g_acc.isna().sum() / len(g)  # rate of duplicate groups
+        res.group_sizes = group_sizes
 
         # Cluster validation
         # res.model = m        # cannot be serialized easily
@@ -348,6 +353,7 @@ class FairnessResult:
             "c_acc": self.c_acc.to_json(),
             "g_acc": self.g_acc.to_json(),
             "subgroups": self.subgroups.to_json(),
+            "group_sizes": self.group_sizes,
             "duplication": self.duplication,
             "clustering": self.clustering.tolist(),
             "cvi": self.cvi.to_json(),
@@ -363,6 +369,7 @@ class FairnessResult:
         res.c_acc = parsed["c_acc"]
         res.g_acc = parsed["g_acc"]
         res.subgroups = parsed["subgroups"]
+        res.group_sizes = parsed["group_sizes"]
         res.duplication = parsed["duplication"]
         res.clustering = parsed["clustering"]
         res.cvi = parsed["cvi"]
