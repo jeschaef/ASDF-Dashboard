@@ -134,24 +134,34 @@ class UploadDatasetForm(RedirectForm):
             return False
 
         # Validate that either label_column is given (& contained in df) or df contains column 'class'
-        if self.label_column.data == "" and 'class' not in df.columns:
-            self.label_column.errors.append("If no column named 'class' is contained in the data, "
-                                            "a class label column must be provided")
-            return False
+        label = self.label_column.data
+        if label == "":
+            if "class" not in df.columns:
+                self.label_column.errors.append("If no column named 'class' is contained in the data, "
+                                                "a class label column must be provided")
+                return False
+            else:
+                self.label_column.data = "class"
 
-        if self.label_column.data not in df.columns:
-            self.label_column.errors.append(f"Couldn't find column {self.label_column.data}")
-            return False
+        else:
+            if label not in df.columns:
+                self.label_column.errors.append(f"Couldn't find column {label}")
+                return False
 
         # Validate that either prediction_column is given (& contained in df) or df contains column 'out'
-        if self.prediction_column.data == "" and 'out' not in df.columns:
-            self.prediction_column.errors.append("If no column named 'out' is contained in the data, "
-                                            "a prediction label column must be provided")
-            return False
+        prediction = self.prediction_column.data
+        if prediction == "":
+            if 'out' not in df.columns:
+                self.prediction_column.errors.append("If no column named 'out' is contained in the data, "
+                                                     "a prediction label column must be provided")
+                return False
+            else:
+                self.prediction_column.data = "out"
 
-        if self.prediction_column.data not in df.columns:
-            self.prediction_column.errors.append(f"Couldn't find column {self.prediction_column.data}")
-            return False
+        else:
+            if prediction not in df.columns:
+                self.prediction_column.errors.append(f"Couldn't find column {prediction}")
+                return False
 
         return True
 
