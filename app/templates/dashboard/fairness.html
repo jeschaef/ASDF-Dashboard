@@ -22,27 +22,24 @@
             <input type="range" class="form-range" min="0" max="1" step="0.01" value="0.65" id="threshold">
         </div>
 
-    </div>
-    <div class="row">
-
-
-        <p>
-            Additional parameters/selections/customization
-
-            Categorical columns
-        </p>
-
-
-    </div>
-    <div class="row">
-        <input class="form-control-lg btn btn-lg btn-primary col-sm-2" id="task-submit" name="submit" type="button"
-               value="Evaluate Fairness"/>
+        <div class="col-sm-2 form-control-lg">
+            <input class="btn btn-lg btn-primary" id="task-submit" name="submit" type="button"
+                   value="Evaluate Fairness"/>
+        </div>
     </div>
 </form>
 
-<div class="alert alert-info" id="task-status" role="alert" style="display: none;">
-    Display progress information
+<div class="row">
+    <p>
+        Additional parameters/selections/customization
+
+        Categorical columns
+    </p>
+    <div class="alert alert-info" id="task-status" role="alert" style="display: none;">
+        Display progress information
+    </div>
 </div>
+
 
 <div class="row">
     <div class="col-sm-5 bg-light">
@@ -53,6 +50,16 @@
             <canvas id="chart-group"></canvas>
         </div>
     </div>
+</div>
+
+<div class="row">
+    <table id="table-groups"
+           data-pagination="true"
+           data-page-list="[5, 10, 25, 50, all]"
+           data-detail-view="true"
+           data-detail-view-by-click="true"
+           data-detail-view-icon="false">
+    </table>
 </div>
 
 {% endblock %}

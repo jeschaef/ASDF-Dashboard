@@ -2,13 +2,19 @@ const $status = $('#task-status')       // Task status alert
 const $submit = $('#task-submit')       // Submit button (note: does not submit form)
 const $switch = $('#switch')            // Positive class switch (0/1)
 const $slider = $('#threshold')         // Entropy threshold (0 <= t <= 1)
+const $canv_fair = $('#chart-fair')     // Canvas for fair chart
+const $canv_group = $('#chart-group')   // Canvas for group chart
 
 // Create empty charts
+let result = null                       // Global variable to hold fairness analysis result
 const fair_chart = createFairChart()
 const group_chart = createGroupChart()
 
+// Table
+const $table = $('#table-groups')
 
-function parseFairnessResult(result) {
+
+function parseFairnessResult() {
     // General fairness data
     const fair = JSON.parse(result['fair'])
     const abs_means = fair['abs_mean']
@@ -24,11 +30,6 @@ function parseFairnessResult(result) {
         abs_means['g_avg_odds'], abs_means['g_acc']]
 
     return [c_data, g_data]
-}
-
-
-function parseGroupResult(result) {
-
 }
 
 
@@ -142,17 +143,16 @@ function createGroupChart() {
 }
 
 
-function updateFairChart(chart, result) {
-    const [c_data, g_data] = parseFairnessResult(result)
+function updateFairChart(chart) {
+    const [c_data, g_data] = parseFairnessResult()
     chart.data.datasets[0].data = c_data
     chart.data.datasets[1].data = g_data
     chart.update();
 }
 
 
-function updateGroupChart(chart, result) {
+function updateGroupChart(chart, k) {
     // Clusters
-    const k = Math.max(...result.clustering) + 1
     const counts = countValues(result.clustering)
 
     // Entropy-based subgroups
@@ -186,7 +186,7 @@ function showStatus(status_msg, fades = false) {
     $status.show()
     $status.text(status_msg)
     if (fades)
-        $status.fadeOut(5000)   // slowly fade out in 5s
+        $status.fadeOut(3000)   // slowly fade out in 3s
 }
 
 
@@ -234,8 +234,8 @@ function updateProgress(status_url) {
         // Switch states
         if (state == 'SUCCESS') {
 
-            const result = JSON.parse(data['result'])
-            displayResult(result)
+            result = JSON.parse(data['result'])
+            displayResult()
 
 
         } else if (state == 'FAILURE') {
@@ -255,18 +255,36 @@ function updateProgress(status_url) {
 }
 
 
-function displayResult(result) {
+function displayResult() {
     console.log("Finished:", result)
-    
+
     console.log(JSON.parse(result.c_acc))
 
     console.log(JSON.parse(result.subgroups))
 
     // Plot subgroup fairness data
-    updateFairChart(fair_chart, result)
+    updateFairChart(fair_chart)
 
     // Plot clustering/entropy-based groups data
-    updateGroupChart(group_chart, result)
+    const k = Math.max(...result.clustering) + 1
+    updateGroupChart(group_chart, k)
+
+    // Subgroups
+    const subgroups = JSON.parse(result.subgroups)
+    const data = []
+    const cols = Object.keys(subgroups)
+    for (let i = 0; i < k; i++) {
+        let group = {id: i}
+        for (const c of cols) {
+            group[c] = subgroups[c][i]
+        }
+        data.push(group)
+    }
+    console.log(data)
+
+    // Init table
+    initTable(data, result)
+
 }
 
 
@@ -276,6 +294,38 @@ function countValues(arr) {
     for (const e of arr)
         counts[e] = counts[e] + 1
     return counts
+}
+
+
+function initTable(data) {
+    // Add table header
+    const $thead = $("<thead></thead>")
+    const $tr = $("<tr></tr>")
+    // $tr.append("<th data-field='id'>id</th>")        // this would add the column 'id' again...
+    for (const c in data[0]) {
+        $tr.append("<th data-field=" + c + " data-detail-formatter='detailFormatter'>" + c + "</th>")
+    }
+    $thead.append($tr)
+    $table.append($thead)
+
+
+    // Init bootstrap-table
+    $table.bootstrapTable({data: data})
+
+}
+
+
+function detailFormatter(index, row) {
+    // Parse raw data
+    const raw_data = JSON.parse(result.raw)
+    const raw_keys = Object.keys(raw_data)
+
+    // Construct result string
+    let s = "Row " + index + ": "
+    for (const k of raw_keys) {
+        s = s + k + "=" + raw_data[k][index] + " "
+    }
+    return s
 }
 
 
@@ -299,4 +349,25 @@ $(function () {
         const threshold = $(this).val()
         $label.text("Entropy threshold: " + threshold)
     })
+
+    // Add click listener on group chart (bar)
+    $canv_group.click(function (evt) {
+        const elem = group_chart.getElementsAtEventForMode(evt, 'nearest', {intersect: false}, true)
+        if (elem && elem.length === 1) {
+            const dataset = elem[0].datasetIndex
+            const index = elem[0].index
+            console.log("Dataset:", dataset, "Index:", index)
+        }
+    })
+
+    // Add click listener on fair chart (radar)
+    $canv_fair.click(function (evt) {
+        const elem = fair_chart.getElementsAtEventForMode(evt, 'nearest', {intersect: false}, true)
+        if (elem && elem.length === 1) {
+            const dataset = elem[0].datasetIndex
+            const index = elem[0].index
+            console.log("Dataset:", dataset, "Index:", index)
+        }
+    })
+
 });
