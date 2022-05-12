@@ -167,8 +167,11 @@ def fairness():
     owner = current_user.id
     all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.name).all()  # TODO no datasets available
 
+    # Available clustering algorithms
+    clustering_algos = ["kmeans", "dbscan", "optics"]
+
     # Display progress/results of fairness analysis task on POST request
     if request.method == 'POST':
         pass
 
-    return render_template('dashboard/fairness.html', all_datasets=all_datasets)
+    return render_template('dashboard/fairness.html', all_datasets=all_datasets, clustering_algos=clustering_algos)

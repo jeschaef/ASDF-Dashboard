@@ -298,24 +298,18 @@ function countValues(arr) {
 
 
 function initTable(data) {
-    // Add table header
-    const $thead = $("<thead></thead>")
-    const $tr = $("<tr></tr>")
-    // $tr.append("<th data-field='id'>id</th>")        // this would add the column 'id' again...
+    // Columns (table header)
+    const columns = []
     for (const c in data[0]) {
-        $tr.append("<th data-field=" + c + " data-detail-formatter='detailFormatter'>" + c + "</th>")
+        columns.push({title: c, field: c, detailFormatter: detailFormatter})
     }
-    $thead.append($tr)
-    $table.append($thead)
-
 
     // Init bootstrap-table
-    $table.bootstrapTable({data: data})
-
+    $table.bootstrapTable({columns: columns, data: data})
 }
 
 
-function detailFormatter(index, row) {
+function detailFormatter(index, row, $element) {
     // Parse raw data
     const raw_data = JSON.parse(result.raw)
     const raw_keys = Object.keys(raw_data)
@@ -325,7 +319,40 @@ function detailFormatter(index, row) {
     for (const k of raw_keys) {
         s = s + k + "=" + raw_data[k][index] + " "
     }
-    return s
+    // return s
+
+    // Table element
+    const $sub_table = $('<table></table>')
+    $sub_table.attr("id", "detail-table" + index)
+
+    // Add table header (impossible via bootstrapTable({columns: ...}) with rowspan/colspan)
+    const $tr_upper = $('<tr></tr>')
+    $tr_upper.append(
+        $('<th colspan="4">Cluster-based subgroup</th>'),
+        $('<th colspan="4">Entropy-based subgroup</th>')
+    )
+
+    const $tr_lower = $('<tr></tr>')
+    $tr_lower.append(
+        $('<th data-field="c_stat_par">Stat. Parity</th>'),
+        $('<th data-field="c_eq_opp">Eq. Opportunity</th>'),
+        $('<th data-field="c_avg_odds">(Avg.) Eq. Odds</th>'),
+        $('<th data-field="c_acc">Accuracy</th>'),
+        $('<th data-field="g_stat_par">Stat. Parity</th>'),
+        $('<th data-field="g_eq_opp">Eq. Opportunity</th>'),
+        $('<th data-field="g_avg_odds">(Avg.) Eq. Odds</th>'),
+        $('<th data-field="g_acc">Accuracy</th>')
+    )
+    const $thead = $('<thead></thead>')
+    $thead.append($tr_upper, $tr_lower)
+    $sub_table.append($thead)
+    console.log($sub_table)
+
+    // Add the table element to the cell
+    $element.append($sub_table)
+
+    // Init bootstrap table
+    $sub_table.bootstrapTable({data: []})
 }
 
 

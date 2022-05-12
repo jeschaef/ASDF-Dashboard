@@ -26,12 +26,12 @@ def start_fairness_task():
     data_json = data.to_json()  # json serialization is required to send task
 
     # Start task
-    task = fairness_analysis.delay(data_json, pos_label=pos_label, threshold=threshold)
+    fair_task = fairness_analysis.delay(data_json, pos_label=pos_label, threshold=threshold)
 
     # fair_res = FairnessResult.from_json(task.get())
     # log.debug(f"Got fairness result: {fair_res}")
 
-    return jsonify({}), 202, {'Location': url_for('task.status', task_id=task.id)}
+    return jsonify({}), 202, {'Location': url_for('task.status', task_id=fair_task.id)}
 
 
 @task.route('/task/<task_id>')
