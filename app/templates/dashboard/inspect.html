@@ -1,11 +1,5 @@
 {% extends "dashboard/dashboard_base.html" %}
 
-{% block styles %}
-{{ super() }}
-<!-- Import fontawesome free kit for icons (not shown otherwise, hotfix) -->
-<link rel="stylesheet" href="https://kit-free.fontawesome.com/releases/latest/css/free.min.css">
-{% endblock %}
-
 {% block inner_content %}
 
 <form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.inspect') }}">
