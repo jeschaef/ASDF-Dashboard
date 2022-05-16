@@ -31,7 +31,7 @@ def redirect_url(endpoint='main.index'):
     return next or url_for(endpoint)
 
 
-@cache.memoize(60)  # cache for 1 min TODO change
+@cache.memoize(60)  # cache for 1 min TODO change timeout?
 def load_data(owner, dataset):
     file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
     log.debug(f"Loading data from file {file_path}")

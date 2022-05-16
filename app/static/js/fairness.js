@@ -13,6 +13,10 @@ const group_chart = createGroupChart()
 // Table
 const $table = $('#table-groups')
 
+// Current task
+let current_task = null
+let current_task_stop_url = null
+
 
 function parseFairnessResult() {
     // General fairness data
@@ -210,7 +214,7 @@ function startFairnessTask(event) {
     $.post(start_task_url,
         data,
         function (data, status, request) {
-            const status_url = request.getResponseHeader('Location');
+            const status_url = request.getResponseHeader('status');
             updateProgress(status_url);
         }
     ).done(function () {

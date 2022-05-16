@@ -19,6 +19,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(PASSWORD_LENGTH))
     session_token = db.Column(db.String(UUID_LENGTH), unique=True, index=True)  # alternative user id (for session)
     datasets = db.relationship('Dataset')
+    tasks = db.relationship('Task', lazy='select')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -28,7 +29,7 @@ class User(db.Model, UserMixin):
         return f"User[id={self.id}, email={self.email}, name={self.name}, session_token={self.session_token}]"
 
     def get_id(self):
-        return self.session_token
+        return self.session_token   # return session token instead of id (for login manager)
 
 
 class Dataset(db.Model):
@@ -53,15 +54,12 @@ class Dataset(db.Model):
                f"label_column={self.label_column}, prediction_column={self.prediction_column}]"
 
 
-class Result(db.Model):
+class Task(db.Model):
     id = db.Column(db.String(UUID_LENGTH), primary_key=True)
-    time = db.Column(db.DateTime)
     owner = db.Column(db.String(UUID_LENGTH), db.ForeignKey('user.id'), nullable=False)
 
     def __init__(self, *args, **kwargs):
-        super(Result, self).__init__(*args, **kwargs)
-        self.id = uuid.uuid4().hex  # auto-generate id
-        self.upload_date = datetime.datetime.now()  # set upload date on creation
+        super(Task, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return f"Result[id={self.id}, time={self.time}]"
+        return f"Task[id={self.id}, owner={self.owner}]"

@@ -94,9 +94,8 @@ def delete_dataset():
 @login_required
 def inspect():
     # Either get dataset from request via name (POST) or simply the latest uploaded (GET)
-    owner = current_user.id
     selected_name = request.form.get('dataset')
-    all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.upload_date.desc()).all()
+    all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.upload_date.desc()).all()
 
     if selected_name is None:
         # Most recent uploaded (first in list)
@@ -110,7 +109,7 @@ def inspect():
         # TODO dataset name does not match any of the datasets
 
     # Load data columns+types (cached)
-    columns = load_data(owner, dataset.id).dtypes  # TODO try catch
+    columns = load_data(current_user.id, dataset.id).dtypes  # TODO try catch
     # log.debug(f"{type(columns)}: {columns}")
 
     # TODO fix missing icons
@@ -131,9 +130,8 @@ def raw_data(name):
     filter = request.args.get('filter')
 
     # Query dataset object from database and load data
-    owner = current_user.id
-    d = Dataset.query.filter_by(owner=owner, name=name).first_or_404()
-    data = load_data(owner, d.id)  # TODO try catch
+    d = Dataset.query.filter_by(owner=current_user.id, name=name).first_or_404()
+    data = load_data(current_user.id, d.id)  # TODO try catch
 
     # Apply filter
     if filter:
