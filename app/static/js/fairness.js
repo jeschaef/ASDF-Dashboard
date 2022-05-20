@@ -382,6 +382,9 @@ function countValues(arr) {
 
 
 function initTable(data) {
+    // Collapse all expanded row details (old results are still displayed otherwise)
+    $table.bootstrapTable('collapseAllRows')
+
     // Columns (table header)
     const columns = []
     for (const c in data[0]) {
