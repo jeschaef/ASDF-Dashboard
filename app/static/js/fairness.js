@@ -1,21 +1,20 @@
-const $status = $('#task-status')       // Task status alert
-const $submit = $('#task-submit')       // Submit button (note: does not submit form)
-const $switch = $('#switch')            // Positive class switch (0/1)
-const $slider = $('#threshold')         // Entropy threshold (0 <= t <= 1)
-const $canv_fair = $('#chart-fair')     // Canvas for fair chart
-const $canv_group = $('#chart-group')   // Canvas for group chart
+const $status = $('#task-status')           // Task status alert
+const $area = $('#chart-area')              // Div parent container of charts/tables with results
+const $submit = $('#task-submit')           // Submit button (note: does not submit form)
+const $switch = $('#switch')                // Positive class switch (0/1)
+const $slider = $('#threshold')             // Entropy threshold (0 <= t <= 1)
+const $canv_fair = $('#chart-fair')         // Canvas for fair chart
+const $canv_group = $('#chart-group')       // Canvas for group chart
+const $canv_select = $('#chart-select')     // Canvas for selection chart
 
 // Create empty charts
-let result = null                       // Global variable to hold fairness analysis result
+let result = null                           // Global variable to hold fairness analysis result
 const fair_chart = createFairChart()
 const group_chart = createGroupChart()
+const select_chart = createSelectionChart()
 
 // Table
 const $table = $('#table-groups')
-
-// Current task
-let current_task = null
-let current_task_stop_url = null
 
 
 function parseFairnessResult() {
@@ -33,6 +32,21 @@ function parseFairnessResult() {
     const g_data = [g_acc['mean_err'], abs_means['g_stat_par'], abs_means['g_eq_opp'],
         abs_means['g_avg_odds'], abs_means['g_acc']]
 
+    return [c_data, g_data]
+}
+
+
+function parseSelectionData(index) {
+    // Parse raw data
+    const raw_data = JSON.parse(result.raw)
+    const c_data = [raw_data.c_stat_par[index],
+        raw_data.c_eq_opp[index],
+        raw_data.c_avg_odds[index],
+        raw_data.c_acc[index]]
+    const g_data = [raw_data.g_stat_par[index],
+        raw_data.g_eq_opp[index],
+        raw_data.g_avg_odds[index],
+        raw_data.g_acc[index]]
     return [c_data, g_data]
 }
 
@@ -103,6 +117,14 @@ function createFairChart() {
 }
 
 
+function updateFairChart() {
+    const [c_data, g_data] = parseFairnessResult()
+    fair_chart.data.datasets[0].data = c_data
+    fair_chart.data.datasets[1].data = g_data
+    fair_chart.update();
+}
+
+
 function createGroupChart() {
 
 
@@ -147,15 +169,7 @@ function createGroupChart() {
 }
 
 
-function updateFairChart(chart) {
-    const [c_data, g_data] = parseFairnessResult()
-    chart.data.datasets[0].data = c_data
-    chart.data.datasets[1].data = g_data
-    chart.update();
-}
-
-
-function updateGroupChart(chart, k) {
+function updateGroupChart(k) {
     // Clusters
     const counts = countValues(result.clustering)
 
@@ -163,18 +177,81 @@ function updateGroupChart(chart, k) {
     const group_sizes = result.group_sizes
 
     // Update chart
-    chart.data.labels = [...counts.keys()]      // [0,1,2,...,k-1]
-    chart.data.datasets[0].data = counts
-    chart.data.datasets[1].data = group_sizes
+    group_chart.data.labels = [...counts.keys()]      // [0,1,2,...,k-1]
+    group_chart.data.datasets[0].data = counts
+    group_chart.data.datasets[1].data = group_sizes
 
     // Reset size based on k
     const barpx = 30
     const extra = 200
     const width = k * barpx + extra
-    chart.canvas.parentNode.style.width = width + 'px';
+    group_chart.canvas.parentNode.style.width = width + 'px';
 
-    chart.update()
+    group_chart.update()
 
+}
+
+
+function createSelectionChart() {
+    const labels = [
+        'Statistical Parity',
+        'Equal Opportunity',
+        'Equalized odds',
+        'Accuracy',
+    ];
+
+    // Define datasets (empty)
+    const datasets = {
+        labels: labels,
+        datasets: [{
+            label: 'Cluster',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
+            borderWidth: 1,
+            borderRadius: 1,
+            data: [],
+        }, {
+            label: 'Entropy-based Subgroup',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 1,
+            borderRadius: 1,
+            data: []
+        }]
+    };
+
+    // Chart config
+    const config = {
+        type: 'bar',
+        data: datasets,
+        options: {
+            layout: {
+                padding: 20
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Subgroup fairness metrics for selected cluster/entropy-based subgroup"
+                }
+            }
+        }
+    };
+
+    // Create chart
+    return new Chart(
+        document.getElementById('chart-select'),
+        config
+    )
+}
+
+
+function updateSelectionChart(index) {
+    const [c_data, g_data] = parseSelectionData(index)
+    select_chart.data.datasets[0].data = c_data
+    select_chart.data.datasets[1].data = g_data
+    select_chart.options.plugins.title.text =
+        "Subgroup fairness metrics for cluster/entropy-based subgroup " + index
+    select_chart.update();
 }
 
 
@@ -266,12 +343,15 @@ function displayResult() {
 
     console.log(JSON.parse(result.subgroups))
 
+    // Show chart area
+    $area.show()
+
     // Plot subgroup fairness data
-    updateFairChart(fair_chart)
+    updateFairChart()
 
     // Plot clustering/entropy-based groups data
     const k = Math.max(...result.clustering) + 1
-    updateGroupChart(group_chart, k)
+    updateGroupChart(k)
 
     // Subgroups
     const subgroups = JSON.parse(result.subgroups)
@@ -316,14 +396,6 @@ function initTable(data) {
 function detailFormatter(index, row, $element) {
     // Parse raw data
     const raw_data = JSON.parse(result.raw)
-    const raw_keys = Object.keys(raw_data)
-
-    // Construct result string
-    let s = "Row " + index + ": "
-    for (const k of raw_keys) {
-        s = s + k + "=" + raw_data[k][index] + " "
-    }
-    // return s
 
     // Table element
     const $sub_table = $('<table></table>')
@@ -338,14 +410,14 @@ function detailFormatter(index, row, $element) {
 
     const $tr_lower = $('<tr></tr>')
     $tr_lower.append(
-        $('<th data-field="c_stat_par">Stat. Parity</th>'),
-        $('<th data-field="c_eq_opp">Eq. Opportunity</th>'),
-        $('<th data-field="c_avg_odds">(Avg.) Eq. Odds</th>'),
-        $('<th data-field="c_acc">Accuracy</th>'),
-        $('<th data-field="g_stat_par">Stat. Parity</th>'),
-        $('<th data-field="g_eq_opp">Eq. Opportunity</th>'),
-        $('<th data-field="g_avg_odds">(Avg.) Eq. Odds</th>'),
-        $('<th data-field="g_acc">Accuracy</th>')
+        $('<th data-field="c_stat_par" data-cell-style="cellStyleCluster">Stat. Parity</th>'),
+        $('<th data-field="c_eq_opp" data-cell-style="cellStyleCluster">Eq. Opportunity</th>'),
+        $('<th data-field="c_avg_odds" data-cell-style="cellStyleCluster">(Avg.) Eq. Odds</th>'),
+        $('<th data-field="c_acc" data-cell-style="cellStyleCluster">Accuracy</th>'),
+        $('<th data-field="g_stat_par" data-cell-style="cellStyleEntropy">Stat. Parity</th>'),
+        $('<th data-field="g_eq_opp" data-cell-style="cellStyleEntropy">Eq. Opportunity</th>'),
+        $('<th data-field="g_avg_odds" data-cell-style="cellStyleEntropy">(Avg.) Eq. Odds</th>'),
+        $('<th data-field="g_acc" data-cell-style="cellStyleEntropy">Accuracy</th>')
     )
     const $thead = $('<thead></thead>')
     $thead.append($tr_upper, $tr_lower)
@@ -355,14 +427,50 @@ function detailFormatter(index, row, $element) {
     // Add the table element to the cell
     $element.append($sub_table)
 
+    // On click, display the selected subgroups fairness in the selection chart
+    $element.click(function (evt) {
+        updateSelectionChart(index)
+    })
+
+    // Table data
+    let tab_row = {
+        "c_stat_par": raw_data.c_stat_par[index],
+        "c_eq_opp": raw_data.c_eq_opp[index],
+        "c_avg_odds": raw_data.c_avg_odds[index],
+        "c_acc": raw_data.c_acc[index],
+        "g_stat_par": raw_data.g_stat_par[index],
+        "g_eq_opp": raw_data.g_eq_opp[index],
+        "g_avg_odds": raw_data.g_avg_odds[index],
+        "g_acc": raw_data.g_acc[index]
+    }
+
     // Init bootstrap table
-    $sub_table.bootstrapTable({data: []})
+    $sub_table.bootstrapTable({data: [tab_row]})
+}
+
+
+function cellStyleCluster(value, row, index, field) {
+    return {
+        css: {
+            'background-color': 'rgba(255, 99, 132, 0.2)'
+        }
+    }
+}
+
+
+function cellStyleEntropy(value, row, index, field) {
+    return {
+        css: {
+            'background-color': 'rgba(54, 162, 235, 0.2)'
+        }
+    }
 }
 
 
 $(function () {
-    // Hide status alert at the start
+    // Hide status alert & chart area at the start
     $status.hide()
+    $area.hide()
 
     // Add button functionality (submit task)
     $submit.click(startFairnessTask)
@@ -387,7 +495,16 @@ $(function () {
         if (elem && elem.length === 1) {
             const dataset = elem[0].datasetIndex
             const index = elem[0].index
-            console.log("Dataset:", dataset, "Index:", index)
+
+            // Scroll to page & row for selected subgroup
+            const page_size = $table.bootstrapTable('getOptions').pageSize
+            const goto_page = Math.floor(index / page_size) + 1         // page numbers start at 1 not 0...
+            const scroll_index = index % page_size
+            $table.bootstrapTable('selectPage', goto_page)
+            $table.bootstrapTable('scrollTo', {unit: 'rows', value: scroll_index})
+
+            // Show bars for selected subgroup
+            updateSelectionChart(index)
         }
     })
 
@@ -402,3 +519,4 @@ $(function () {
     })
 
 });
+

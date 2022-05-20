@@ -56,6 +56,7 @@
     </div>
 </form>
 
+
 <div class="row">
     <p>
         Additional parameters/selections/customization
@@ -67,25 +68,34 @@
     </div>
 </div>
 
-
-<div class="row">
-    <div class="col-sm-5">
-        <canvas id="chart-fair"></canvas>
-    </div>
-    <div class="col-sm-7" style="overflow-x: auto">
-        <div class="chart-container" style="position: relative; width: 100%; height: 100%">
-            <canvas id="chart-group"></canvas>
+<div id="chart-area" style="display: none;">
+    <div class="row">
+        <div class="col-sm-5">
+            <canvas id="chart-fair"></canvas>
+        </div>
+        <div class="col-sm-7" style="overflow-x: auto">
+            <div class="chart-container" style="position: relative; width: 100%; height: 100%">
+                <canvas id="chart-group"></canvas>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <table id="table-groups"
-           data-pagination="true"
-           data-page-list="[5, 10, 25, 50, all]"
-           data-detail-view="true"
-           data-detail-view-by-click="true">
-    </table>
+    <div class="row">
+        <table id="table-groups"
+               data-pagination="true"
+               data-page-list="[5, 10, 25, 50, all]"
+               data-detail-view="true"
+               data-detail-view-by-click="true"
+               data-height="460">
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <canvas id="chart-select"></canvas>
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}
