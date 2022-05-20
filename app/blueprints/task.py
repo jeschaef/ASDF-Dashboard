@@ -15,10 +15,8 @@ log = logging.getLogger()
 @login_required
 def start_fairness_task():
     # Does the user already have a running task? If so, stop it before starting another
-    current_task = FairnessTask.current()
-    if current_task is not None:
-        log.debug("Fairness task is already running")
-        stop_fairness_task(current_task)
+    stopped = FairnessTask.stop(current_user)
+    log.debug(f"Stopped current task? {stopped}")
 
     # Get data from request body
     dataset_id = request.form.get("dataset_id")  # TODO no dataset id in request body
@@ -31,8 +29,8 @@ def start_fairness_task():
     data_json = data.to_json()  # json serialization is required to send task
 
     # Start task
-    task = fairness_analysis.delay(data_json, pos_label=pos_label, threshold=threshold)
-    FairnessTask.cache(task)
+    t = fairness_analysis.delay(data_json, pos_label=pos_label, threshold=threshold)
+    FairnessTask.cache(current_user, t.id)      # cache running task
 
     return jsonify({}), 202, {'status': url_for('task.status')}
 
@@ -40,44 +38,38 @@ def start_fairness_task():
 @task.route('/task/fairness/status')
 @login_required
 def status():
-    # Is user authorized to view this task?
-    current_task = FairnessTask.current()
-    if current_task is None:
+    # Is there a current task?
+    current_task_id = FairnessTask.get(current_user)
+    if current_task_id is None:
         return abort(404)
 
     # Switch task state
-    task = fairness_analysis.AsyncResult(current_task)
-    if task.state == 'PENDING':
+    t = fairness_analysis.AsyncResult(current_task_id)
+    log.debug(t)
+    if t.state == 'PENDING':
         # job did not start yet
         response = {
-            'state': task.state,
+            'state': t.state,
             'status': 'Waiting for task to start...'
         }
-    elif task.state == 'PROGRESS':
+    elif t.state == 'PROGRESS':
         response = {
-            'state': task.state,
-            'status': task.info.get('status', '')  # task.info is a dict
+            'state': t.state,
+            'status': t.info.get('status', '')  # task.info is a dict
         }
-    elif task.state == 'SUCCESS':
+    elif t.state == 'SUCCESS':
         response = {
-            'state': task.state,
+            'state': t.state,
             'status': 'Successfully finished task!',
-            'result': task.info  # task.info is a json string (result)
+            'result': t.info  # task.info is a json string (result)
         }
+        FairnessTask.delete(current_user)       # remove cache entry
     else:
-        # something went wrong in the background job
+        # something went wrong in the background job (states: FAILURE, RETRY, REVOKED)
         response = {
-            'state': task.state,
-            'status': str(task.info),  # this is the exception raised
+            'state': t.state,
+            'status': str(t.info),  # this is the exception raised
         }
+        # FairnessTask.delete(current_user)  # remove cache entry????
+
     return jsonify(response)  # TODO return stream
-
-
-def stop_fairness_task(current_task):
-    # Delete cache entry
-    FairnessTask.delete()
-
-    # Revoke task (terminate if running already)
-    fairness_analysis.AsyncResult(current_task).revoke(terminate=True)
-    log.debug(f"Revoked task {current_task}")
-
