@@ -45,7 +45,6 @@ def status():
 
     # Switch task state
     t = fairness_analysis.AsyncResult(current_task_id)
-    log.debug(t)
     if t.state == 'PENDING':
         # job did not start yet
         response = {
