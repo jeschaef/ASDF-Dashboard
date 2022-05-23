@@ -105,7 +105,8 @@ function createFairChart() {
                     suggestedMin: 0,
                     suggestedMax: 1
                 }
-            }
+            },
+            maintainAspectRatio: false,
         }
     };
 
@@ -121,6 +122,7 @@ function updateFairChart() {
     const [c_data, g_data] = parseFairnessResult()
     fair_chart.data.datasets[0].data = c_data
     fair_chart.data.datasets[1].data = g_data
+    setChartHeight(fair_chart)
     fair_chart.update();
 }
 
@@ -157,7 +159,7 @@ function createGroupChart() {
             layout: {
                 padding: 20
             },
-            maintainAspectRatio: false,         // Chart will be much wider some times
+            maintainAspectRatio: false,
         }
     };
 
@@ -185,6 +187,7 @@ function updateGroupChart(k) {
     const barpx = 30
     const extra = 200
     const width = k * barpx + extra
+    setChartHeight(group_chart)
     group_chart.canvas.parentNode.style.width = width + 'px';
 
     group_chart.update()
@@ -233,7 +236,8 @@ function createSelectionChart() {
                     display: true,
                     text: "Subgroup fairness metrics for selected cluster/entropy-based subgroup"
                 }
-            }
+            },
+            maintainAspectRatio: false,
         }
     };
 
@@ -251,6 +255,7 @@ function updateSelectionChart(index) {
     select_chart.data.datasets[1].data = g_data
     select_chart.options.plugins.title.text =
         "Subgroup fairness metrics for cluster/entropy-based subgroup " + index
+    setChartHeight(select_chart)
     select_chart.update();
 }
 
@@ -260,6 +265,11 @@ function clearChart(chart) {
         dataset.data.pop();
     });
     chart.update();
+}
+
+
+function setChartHeight(chart) {
+    chart.canvas.parentNode.style.height = '500px';
 }
 
 
@@ -352,6 +362,9 @@ function displayResult() {
     // Plot clustering/entropy-based groups data
     const k = Math.max(...result.clustering) + 1
     updateGroupChart(k)
+
+    // Plot subgroup fairness for initial selection (cluster/subgroup 0)
+    updateSelectionChart(0)
 
     // Subgroups
     const subgroups = JSON.parse(result.subgroups)
@@ -518,6 +531,7 @@ $(function () {
             const dataset = elem[0].datasetIndex
             const index = elem[0].index
             console.log("Dataset:", dataset, "Index:", index)
+            // TODO use this for something
         }
     })
 
