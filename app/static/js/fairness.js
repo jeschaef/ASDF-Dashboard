@@ -1,8 +1,21 @@
-const $status = $('#task-status')           // Task status alert
-const $area = $('#chart-area')              // Div parent container of charts/tables with results
-const $submit = $('#task-submit')           // Submit button (note: does not submit form)
-const $switch = $('#switch')                // Positive class switch (0/1)
-const $slider = $('#threshold')             // Entropy threshold (0 <= t <= 1)
+const $status = $('#task-status')               // Task status alert
+const $area = $('#chart-area')                  // Div parent container of charts/tables with results
+const $submit = $('#task-submit')               // Submit button (note: does not submit form)
+const $dataset = $("#dataset-select")           // Dataset selection
+const $switch = $('#switch')                    // Positive class switch (0/1)
+const $slider = $('#threshold')                 // Entropy threshold (0 <= t <= 1)
+const $categoricals = $('#select-categ')        // Categorical column selectpicker (multiselect)
+const $algorithm = $('#select-algo')            // Clustering algorithm selectpicker
+const $params = $('#parameter-button')          // Button for clustering algorithm parameters
+const $modal_body = $('#parameter-modal-body')  // Clustering parameter modal body
+const $clear_params = $('#parameter-clear')     // Clear algorithm params button
+const $form = $('#fairness-form')               // Full fairness form (dataset, threshold, class label, ...)
+
+// Popovers
+const popover_categ = new bootstrap.Popover(document.getElementById('popover-categ'))
+const popover_params = new bootstrap.Popover(document.getElementById('popover-params'))
+
+// Canvas
 const $canv_fair = $('#chart-fair')         // Canvas for fair chart
 const $canv_group = $('#chart-group')       // Canvas for group chart
 const $canv_select = $('#chart-select')     // Canvas for selection chart
@@ -15,6 +28,9 @@ const select_chart = createSelectionChart()
 
 // Table
 const $table = $('#table-groups')
+
+// Clustering algorithm info
+let clustering_info = null
 
 
 function parseFairnessResult() {
@@ -281,20 +297,31 @@ function showStatus(status_msg, fades = false) {
 }
 
 
-function startFairnessTask(event) {
+function startFairnessTask() {
+
+    // Validate form manually
+    const is_valid = $form.get(0).reportValidity()
+    if (!is_valid)
+        return
 
     // Display information
     showStatus("Starting fairness task ...")
 
     // Create request data
-    const dataset_id = $("#dataset-select").find(":selected").val()
+    const dataset_id = $dataset.find(":selected").val()
     const positive_class = ($switch.is(":checked") ? 1 : 0)
     const threshold = $slider.val()
+    const categ_columns = $categoricals.val()
+    const algorithm = $algorithm.val()
+    const parameters = getClusteringParameters()
 
     const data = {
         dataset_id: dataset_id,
         positive_class: positive_class,
         threshold: threshold,
+        categ_columns: categ_columns,
+        algorithm: algorithm,
+        parameters: parameters,
     }
 
     // Send ajax POST request to start the task
@@ -349,10 +376,6 @@ function updateProgress(status_url) {
 function displayResult() {
     console.log("Finished:", result)
 
-    console.log(JSON.parse(result.c_acc))
-
-    console.log(JSON.parse(result.subgroups))
-
     // Show chart area
     $area.show()
 
@@ -377,11 +400,9 @@ function displayResult() {
         }
         data.push(group)
     }
-    console.log(data)
 
     // Init table
     initTable(data, result)
-
 }
 
 
@@ -438,7 +459,6 @@ function detailFormatter(index, row, $element) {
     const $thead = $('<thead></thead>')
     $thead.append($tr_upper, $tr_lower)
     $sub_table.append($thead)
-    console.log($sub_table)
 
     // Add the table element to the cell
     $element.append($sub_table)
@@ -483,10 +503,92 @@ function cellStyleEntropy(value, row, index, field) {
 }
 
 
+function setDatasetColumns(data) {
+    // Remove all previously set options
+    $categoricals.find("option").remove().end()
+
+    // Add columns as options
+    const columns = Object.keys(data)
+    for (const key of columns) {
+        $categoricals.append($('<option value="' + key + '">' + key + '</option>'))
+    }
+
+    // Enable selectpicker, disable popover (tooltip)
+    $categoricals.prop("disabled", false)
+    popover_categ.disable()
+
+    // Refresh
+    $categoricals.selectpicker('refresh')
+}
+
+
+function initClusteringAlgorithms() {
+    for (const key in clustering_info) {
+        $algorithm.append($('<option value="' + key + '">' + key + '</option>'))
+    }
+    $algorithm.selectpicker("refresh")
+}
+
+
+function setClusteringParameters() {
+
+    // If something is selected, enable the parameter modal toggle (button)
+    const algo = $(this).val()
+    if (algo != null && algo !== "") {
+        $params.prop('disabled', false)
+    } else {
+        $params.prop('disabled', true)
+    }
+
+    // Disable the popover (tooltip)
+    popover_params.disable()
+
+    // Configure the modal based on selected algorithm
+    $modal_body.empty()
+    $modal_body.append(algo + ":")
+    const $modal_container = $('<div class="container-fluid"></div>')
+    const $modal_row = $('<div class="row gx-1 gy-4" id="modal-row"></div>')
+
+    // switch ($(this).val()) {
+    //     case "kmeans":
+    //         break
+    //     case "dbscan":
+    //         break
+    //     case "optics":
+    //         break
+    // }
+    const params = Object.keys(clustering_info[algo])
+    for (const p of params) {
+        const id = "param_" + p
+        $modal_row.append($('<label class="col col-sm-5 col-form-label" for="' + id + '">' + p + '</label>' +
+            '<input class="col col-sm-7 form-control" id="' + id + '" name="' + p + '" style="width: auto" type="text">'))
+    }
+    $modal_container.append($modal_row)
+    $modal_body.append($modal_container)
+
+
+}
+
+
+function getClusteringParameters() {
+    const $modal_row = $('#modal-row')
+    const parameters = {}
+    for (const p of $modal_row.find('input')) {
+        const val = $(p).val()
+        if (!val)
+            continue    // skip empty inputs
+        parameters[p.name] = val
+    }
+    return parameters
+}
+
+
+function clearClusteringParameters() {
+    $('#modal-row').find('input').val('')
+}
+
+
 $(function () {
-    // Hide status alert & chart area at the start
-    $status.hide()
-    $area.hide()
 
     // Add button functionality (submit task)
     $submit.click(startFairnessTask)
@@ -534,6 +636,29 @@ $(function () {
             // TODO use this for something
         }
     })
+
+
+    // Dataset selectpicker change listener (load dataset columns for categorical columns selection)
+    $dataset.on('change', function () {
+        const id = $(this).val()
+        $.getJSON(columns_info_url, {id: id}, setDatasetColumns)
+    })
+
+
+    // Cluster algorithm select listener (if something is selected, enable parameters)
+    $algorithm.on('change', setClusteringParameters);
+
+    // Get clustering algorithm info & init algorithm selectpicker
+    $.getJSON(
+        clustering_info_url,
+        function (data) {
+            clustering_info = data
+            initClusteringAlgorithms()
+        }
+    )
+
+    // Cluster algorithm parameter clear all button
+    $clear_params.click(clearClusteringParameters)
 
 });
 

@@ -7,58 +7,104 @@
 
 
 {% block inner_content %}
-<form class="mx-5">
-    <div class="row">
-        <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
-        <div class="col-sm-2">
-            <select class="form-select form-select-lg" id="dataset-select" name="dataset">
+<form class="mx-2" id="fairness-form">
+    <div class="row gx-5 gy-3">
+
+        <!-- Dataset selectpicker -->
+        <div class="col col-sm-1">
+            <label for="dataset-select" class="form-label col-form-label-lg">Dataset:</label>
+        </div>
+        <div class="col col-sm-2 offset-sm-1">
+            <select class="selectpicker" id="dataset-select" name="dataset" data-live-search="true"
+                    title="Choose a dataset..." required>
                 {% for d in all_datasets %}
                 <option value="{{ d.id }}">{{ d.name }}</option>
                 {% endfor %}
             </select>
+            <div class="invalid-feedback">
+                Please select a dataset.
+            </div>
         </div>
 
-        <div class="col-sm-3 form-check form-switch form-control-lg">
+        <!-- Positive class switch -->
+        <div class="col col-sm-2 offset-sm-1 form-check form-switch form-control-lg">
             <input class="form-check-input" type="checkbox" role="switch" id="switch">
             <label class="form-check-label" for="switch">Positive class label: 0</label>
         </div>
 
-        <div class="col-sm-3 form-control-lg">
-            <label for="threshold" class="form-label">Entropy threshold: 0.65</label>
+        <!-- Entropy threshold slider -->
+        <div class="col col-sm-3 offset-sm-1">
+            <label for="threshold" class="form-label col-form-label-lg">Entropy threshold: 0.65</label>
             <input type="range" class="form-range" min="0" max="1" step="0.01" value="0.65" id="threshold">
         </div>
 
-        <div class="col-sm-2 form-control-lg">
+        <!-- Categorical columns multi selectpicker-->
+        <div class="col col-sm-2">
+            <label for="select-categ" class="form-label col-form-label-lg">Categorical columns:</label>
+        </div>
+        <div class="col col-sm-2">
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                  data-bs-content="Select a dataset first!" id="popover-categ">
+                <select class="selectpicker" id="select-categ" name="categoricals" data-actions-box="true"
+                        title="Categorical columns ..." data-selected-text-format="count" multiple disabled>
+                </select>
+            </span>
+        </div>
+
+        <!-- Clustering algorithm selectpicker -->
+        <div class="col col-sm-2">
+            <label for="select-algo" class="form-label col-form-label-lg">Clustering algorithm:</label>
+        </div>
+        <div class="col col-sm-2">
+            <select class="selectpicker" id="select-algo" data-live-search="true"
+                    title="Choose a clustering ..." required>
+            </select>
+        </div>
+
+        <!-- Algorithm parameters + Modal -->
+        <div class="col col-sm-2">
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
+                  data-bs-content="Select an algorithm first!" id="popover-params">
+                <button type="button" class="btn btn-lg btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#parameter-modal" id="parameter-button" disabled>
+                    <svg class="bi" width="20" height="20" role="img" aria-label="Home">
+                        <use xlink:href="#sliders-vertical"/>
+                    </svg>
+                    Algorithm parameters
+                </button>
+            </span>
+        </div>
+
+        <div class="modal fade" id="parameter-modal" tabindex="-1" aria-labelledby="parameter-modal-label"
+             aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="parameter-modal-label">Parameters</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="parameter-modal-body">
+                        ... Parameters ...
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" id="parameter-clear">
+                            <svg class="bi" width="16" height="16">
+                                <use xlink:href="#trash-fill"></use>
+                            </svg>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Evaluate button -->
+        <div class="col col-sm-2">
             <input class="btn btn-lg btn-primary" id="task-submit" name="submit" type="button"
                    value="Evaluate Fairness"/>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-sm-4">
-            <ul class="dropdown-menu col-sm-4">
-                <li>
-                    <label>
-                        <input type="checkbox">
-                        Checky
-                    </label>
-                </li>
-                <li>
-                    <label>
-                        <input type="checkbox">
-                        Checky2
-                    </label>
-                </li>
-            </ul>
-        </div>
 
-        <div class="col-sm-5 form-control-lg">
-            <label for="select-algo">Clustering algorithm:</label>
-            <select class="form-select-lg" id="select-algo">
-                {% for algorithm in clustering_algos %}
-                <option value="{{algorithm}}">{{algorithm}}</option>
-                {% endfor %}
-            </select>
-        </div>
     </div>
 </form>
 
@@ -69,23 +115,21 @@
 
         Categorical columns
     </p>
-    <div class="alert alert-info hidden" id="task-status" role="alert">
+    <div class="alert alert-info" id="task-status" role="alert" style="display: none;">
         Display progress information
     </div>
 </div>
 
-<div id="chart-area" class="chart-area hidden">
-    <div class="row">
-        <div class="col col-sm-6">
-            <div class="border rounded p-0">
-                <div class="chart-container">
-                    <canvas id="chart-fair"></canvas>
-                </div>
+<div id="chart-area" class="chart-area" style="display: none">
+    <div class="row gy-5 gx-3">
+        <div class="col col-sm-6 border rounded shadow p-0">
+            <div class="chart-container">
+                <canvas id="chart-fair"></canvas>
             </div>
         </div>
 
         <div class="col col-sm-6">
-            <div class="border rounded p-0 m-0">
+            <div class="border rounded shadow p-0">
                 <div class="overflow-x-auto">
                     <div class="chart-container">
                         <canvas id="chart-group"></canvas>
@@ -94,28 +138,30 @@
             </div>
 
         </div>
-    </div>
 
-    <div class="row">
-        <table id="table-groups"
-               data-pagination="true"
-               data-page-list="[5, 10, 25, 50, all]"
-               data-detail-view="true"
-               data-detail-view-by-click="true"
-               data-height="500">
-        </table>
-    </div>
+        <div class="col col-sm-12 border rounded shadow">
+            <table id="table-groups"
+                   data-pagination="true"
+                   data-page-list="[5, 10, 25, 50, all]"
+                   data-detail-view="true"
+                   data-detail-view-by-click="true"
+                   data-height="500">
+            </table>
+        </div>
 
-    <div class="row gx-2">
-        <div class="col col-sm-6 border">
+        <div class="col col-sm-6 border rounded shadow p-0">
             <div class="chart-container">
                 <canvas id="chart-select"></canvas>
             </div>
         </div>
-        <div class="col col-sm-6 border">
-            <div class="chart-container">
-                Empty
+
+        <div class="col col-sm-6">
+            <div class="border rounded shadow p-0">
+                <div class="chart-container">
+                    <p>Empty</p>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -130,6 +176,8 @@
         integrity="sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=" crossorigin="anonymous"></script>
 <script>
     const start_task_url = JSON.parse('{{ url_for("task.start_fairness_task") | tojson }}')
+    const clustering_info_url = JSON.parse('{{ url_for("dashboard.clustering_info") | tojson }}')
+    const columns_info_url = JSON.parse('{{ url_for("dashboard.raw_data_columns") |tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/fairness.js') }}"></script>
 {% endblock %}

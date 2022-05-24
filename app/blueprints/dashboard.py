@@ -2,12 +2,12 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, current_app, url_for, request
+from flask import Blueprint, render_template, current_app, url_for, request, jsonify
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
 from app.blueprints.forms import UploadDatasetForm
-from app.blueprints.util import load_data, delete_data
+from app.blueprints.util import load_data, delete_data, get_clustering_info
 from app.db import db
 from app.model import Dataset
 from app.util import ensure_exists_folder
@@ -157,19 +157,32 @@ def raw_data(name):
     return json.dumps(server_side_format, indent=4)
 
 
+@dashboard.route('/dashboard/datasets/columns')
+@login_required
+def raw_data_columns():
+    id = request.args.get('id')  # might be None
+    d = Dataset.query.filter_by(owner=current_user.id, id=id).first_or_404()
+    columns = load_data(current_user.id, d.id).dtypes # TODO try catch
+    columns = columns.drop([d.label_column, d.prediction_column])
+    return columns.to_json(default_handler=str)  # default handler to fix recursion OverflowError
+
+
 @dashboard.route('/dashboard/fairness', methods=['GET', 'POST'])
 @login_required
 def fairness():
-
-    # Get all the user's datasets
-    owner = current_user.id
-    all_datasets = Dataset.query.filter_by(owner=owner).order_by(Dataset.name).all()  # TODO no datasets available
-
-    # Available clustering algorithms
-    clustering_algos = ["kmeans", "dbscan", "optics"]
+    # Get all the user's datasets   # TODO no datasets available
+    all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.name).all()
 
     # Display progress/results of fairness analysis task on POST request
     if request.method == 'POST':
         pass
 
-    return render_template('dashboard/fairness.html', all_datasets=all_datasets, clustering_algos=clustering_algos)
+    return render_template('dashboard/fairness.html', all_datasets=all_datasets)
+
+
+@dashboard.route('/dashboard/clustering')
+def clustering_info():
+    info = get_clustering_info()
+    log.debug(info)
+    log.debug(jsonify(info).json)
+    return info

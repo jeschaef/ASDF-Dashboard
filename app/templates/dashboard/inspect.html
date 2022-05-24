@@ -6,7 +6,8 @@
     <div class="row">
         <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
         <div class="col-sm-3">
-            <select class="form-select form-select-lg" id="dataset-select" name="dataset">
+            <select class="selectpicker" id="dataset-select" name="dataset"
+                    data-live-search="true">
                 {% for d in all_datasets %}
                 {% if d.name == dataset.name %}
                 <option value="{{ d.name }}" selected>{{ d.name }}</option>
