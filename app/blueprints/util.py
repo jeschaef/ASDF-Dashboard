@@ -1,16 +1,11 @@
-import json
 import logging
 import os
-import typing
 from urllib.parse import urlparse, urljoin
-
-import inspect
-from sklearn.cluster import *
 
 import pandas as pd
 from flask import request, abort, url_for, current_app
+from sklearn.cluster import *
 
-import subgroup_detection.clustering
 from app.cache import cache
 from subgroup_detection import clustering
 
@@ -54,23 +49,8 @@ def delete_data(owner, dataset):
     os.remove(file_path)
 
 
-# @cache.memoize(timeout=0)
-def get_clustering_info(only_names=True):
-    info = {}
-    signatures = _inspect_models()
-    for name in signatures:
-        signature = signatures[name]
-        # log.debug(signature)
-        # log.debug(signature.parameters)
-        params = {}
-        for p in signature.parameters.values():
-            if p.name == 'self':
-                continue
-            if only_names:
-                params[p.name] = ""
-            else:
-                params[p.name] = [type(p.default), p.default]
-        info[name] = params
+@cache.memoize(timeout=0)
+def get_clustering_info():
     return _model_params()
 
 
@@ -126,25 +106,23 @@ def _metrics():
             "sqeuclidean", "yule"]
 
 
-def _inspect_models():
-    return {k: _inspect(m) for k, m in _model_dict().items()}
-
-
-def _inspect(m):
-    return inspect.signature(m.__init__)
-
-
 def choose_model(algorithm, param_dict):
     model_cls = _model_dict()[algorithm]  # select model from dict
     return clustering.choose_model(model_cls, param_dict)
-    # log.info(f"model_cls {model_cls}, param_dict={param_dict}")
-    # signature = _inspect(model_cls)
-    # log.info(f"Typing {typing.get_type_hints(model_cls.__init__)}")
-    # for p_name, val in param_dict.items():
-    #     p = signature.parameters[p_name]
-    #     log.info(f"Parameter: {p_name}, {p.default}, {type(p.default)}, {p.annotation}")
-    #     param_cls = type(p.default)
-    #     log.info(f"Class: {param_cls}, {param_cls(val)}, {type(param_cls(val))}")
-    #     param_dict[p_name] = param_cls(val)
-    # model = model_cls(**param_dict)             # instantiate model object with parameters
-    # return model
+
+
+def get_param_dict(algorithm, parameters, values):
+    if not parameters and not values:       # If lists are empty, return None
+        return None
+
+    info = _model_params()[algorithm]
+    param_dict = dict(zip(parameters, values))
+    for p, v in param_dict.items():
+        if info[p] == "int":
+            val = int(v)
+        elif info[p] == "float":
+            val = float(v)
+        else:
+            val = v
+        param_dict[p] = val
+    return param_dict

@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, url_for, abort
 from flask_login import login_required, current_user
 from sklearn.cluster import KMeans
 
-from app.blueprints.util import load_data
+from app.blueprints.util import load_data, get_param_dict
 from app.model import Dataset
 from app.tasks import fairness_analysis, FairnessTask
 
@@ -31,18 +31,12 @@ def start_fairness_task():
     algorithm = request.form.get("algorithm")
     parameters = request.form.getlist("parameters[]")
     values = request.form.getlist("values[]")
-    param_dict = dict(zip(parameters, values))
-    if not parameters and not values:       # If lists are empty, set to None
-        parameters = None
-        values = None
-        param_dict = None
-    log.debug(f"params {parameters} values {values} dict {param_dict}")
-    # log.debug(f"json {request.json}")
+    param_dict = get_param_dict(algorithm, parameters, values)
+    log.debug(f"{param_dict}")
 
     # Load data & serialize
     data = load_data(current_user.id, dataset_id)
     data_json = data.to_json()  # json serialization is required to send task
-    log.debug(KMeans().get_params())
 
     # Start task
     t = fairness_analysis.delay(data_json, algorithm, pos_label=pos_label, threshold=threshold,

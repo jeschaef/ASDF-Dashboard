@@ -599,13 +599,10 @@ function getClusteringParameters() {
     const parameters = []
     const values = []
     for (const p of $modal_row.find('input')) {
-        const val = $(p).val()
+        let val = $(p).val()
         if (!val)
             continue    // skip empty inputs
         parameters.push(p.name)
-
-        // Parse input value
-        console.log("type", info[p.name])
         values.push(val)
     }
     return [parameters, values]
