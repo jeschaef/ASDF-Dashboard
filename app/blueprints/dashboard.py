@@ -162,7 +162,7 @@ def raw_data(name):
 def raw_data_columns():
     id = request.args.get('id')  # might be None
     d = Dataset.query.filter_by(owner=current_user.id, id=id).first_or_404()
-    columns = load_data(current_user.id, d.id).dtypes # TODO try catch
+    columns = load_data(current_user.id, d.id).dtypes
     columns = columns.drop([d.label_column, d.prediction_column])
     return columns.to_json(default_handler=str)  # default handler to fix recursion OverflowError
 
@@ -182,7 +182,4 @@ def fairness():
 
 @dashboard.route('/dashboard/clustering')
 def clustering_info():
-    info = get_clustering_info()
-    log.debug(info)
-    log.debug(jsonify(info).json)
-    return info
+    return get_clustering_info()

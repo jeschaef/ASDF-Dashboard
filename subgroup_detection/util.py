@@ -40,7 +40,7 @@ def _scale(data, exclude=[]):
     return data  # Min-max scaling
 
 
-def prepare(data, categ_columns=None, **kwargs):
+def prepare(data, categ_columns=None, label_column='class', prediction_column='out', **kwargs):
     """
     Transform a given dataset into a numeric dataset by
         - removing the columns 'cluster', 'out' and 'class',
@@ -53,10 +53,14 @@ def prepare(data, categ_columns=None, **kwargs):
     @param categ_columns: List of categorical columns or None. If None, then all columns
     with type 'category' or 'object' are encoded
     @type categ_columns: None or list of str
+    @param label_column: Name of column with ground-truth class labels
+    @type label_column: str
+    @param prediction_column: Name of column with predicted class labels
+    @type prediction_column: str
     @return: Transformed numeric dataset
     @rtype: pd.DataFrame
     """
-    data_num = data.copy().drop(labels=['cluster', 'out', 'class'], axis=1)
+    data_num = data.copy().drop(labels=['cluster', label_column, prediction_column], axis=1)
     data_num = pd.get_dummies(data_num, drop_first=True, columns=categ_columns)  # One hot encoding
     data_num = _scale(data_num, **kwargs)  # Min-max scaling
     return data_num

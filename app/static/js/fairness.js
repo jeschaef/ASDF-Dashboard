@@ -313,7 +313,7 @@ function startFairnessTask() {
     const threshold = $slider.val()
     const categ_columns = $categoricals.val()
     const algorithm = $algorithm.val()
-    const parameters = getClusteringParameters()
+    const [parameters, values] = getClusteringParameters()
 
     const data = {
         dataset_id: dataset_id,
@@ -322,11 +322,11 @@ function startFairnessTask() {
         categ_columns: categ_columns,
         algorithm: algorithm,
         parameters: parameters,
+        values: values,
     }
 
-    // Send ajax POST request to start the task
-    $.post(start_task_url,
-        data,
+    // Send POST request to start the task (as json)
+    $.post(start_task_url, data,
         function (data, status, request) {
             const status_url = request.getResponseHeader('status');
             updateProgress(status_url);
@@ -547,21 +547,31 @@ function setClusteringParameters() {
     $modal_body.empty()
     $modal_body.append(algo + ":")
     const $modal_container = $('<div class="container-fluid"></div>')
-    const $modal_row = $('<div class="row gx-1 gy-4" id="modal-row"></div>')
+    const $modal_row = $('<div class="row gy-4" id="modal-row"></div>')
 
-    // switch ($(this).val()) {
-    //     case "kmeans":
-    //         break
-    //     case "dbscan":
-    //         break
-    //     case "optics":
-    //         break
-    // }
-    const params = Object.keys(clustering_info[algo])
+    const info = clustering_info[algo]
+    console.log("Clustering info", info)
+    const params = Object.keys(info)
     for (const p of params) {
         const id = "param_" + p
-        $modal_row.append($('<label class="col col-sm-5 col-form-label" for="' + id + '">' + p + '</label>' +
-            '<input class="col col-sm-7 form-control" id="' + id + '" name="' + p + '" style="width: auto" type="text">'))
+        const t = info[p]
+        $modal_row.append($('<label class="col col-sm-5 col-form-label" for="' + id + '">' + p + '</label>'))
+
+        // If it is an array --> selectpicker
+        if (Array.isArray(t)) {
+            const $s = makeSelectPicker(p, id, t)
+            $modal_row.append($s)
+            $s.selectpicker('refresh')
+        } else {
+            // Default input element
+            const $input = $('<input class="col col-sm-7 form-control" id="' + id + '" name="' + p + '" ' +
+                'style="width: auto" type="text" data-bs-toggle="popover" data-bs-trigger="hover focus" ' +
+                'data-bs-content="' + t + '">')
+            $modal_row.append($input)
+            const popover = new bootstrap.Popover($input.get(0))
+        }
+
+
     }
     $modal_container.append($modal_row)
     $modal_body.append($modal_container)
@@ -570,21 +580,39 @@ function setClusteringParameters() {
 }
 
 
+function makeSelectPicker(p, id, options) {
+    const $s = $('<select class="selectpicker" id="' + id + '"  title="' + p + ' ..."></select>')
+    for (const opt of options) {
+        $s.append($('<option value="' + opt + '">' + opt + '</option>'))
+    }
+    return $s
+}
+
+
 function getClusteringParameters() {
     const $modal_row = $('#modal-row')
-    const parameters = {}
+    const parameters = []
+    const values = []
     for (const p of $modal_row.find('input')) {
         const val = $(p).val()
         if (!val)
             continue    // skip empty inputs
-        parameters[p.name] = val
+        parameters.push(p.name)
+        values.push(val)
     }
-    return parameters
+    return [parameters, values]
 }
 
 
 function clearClusteringParameters() {
-    $('#modal-row').find('input').val('')
+    const $row = $('#modal-row')
+    // clear all text inputs
+    $row.find('input').val('')
+    // clear all selections
+    for (const s of $row.find('select.selectpicker')) {
+        $(s).find('option:selected').prop('selected', false)
+        $(s).selectpicker('refresh')
+    }
 }
 
 

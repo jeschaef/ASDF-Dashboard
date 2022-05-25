@@ -5,6 +5,7 @@ from celery import Task
 from celery.utils.log import get_task_logger
 from sklearn.cluster import KMeans
 
+from app.blueprints.util import choose_model
 from app.cache import cache
 from app.celery_app import celery_app
 from subgroup_detection.fairness import test_model_fairness
@@ -56,8 +57,9 @@ class FairnessTask(Task):
 
 # TODO cache results?
 @celery_app.task(bind=True, base=FairnessTask)
-def fairness_analysis(self, df_json, pos_label=1, threshold=0.65):
-    log.info(f"Starting fairness analysis: pos_label={pos_label}, threshold={threshold}")
+def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, categ_columns=None, param_dict=None):
+    log.info(f"Starting fairness analysis: algorithm={algorithm}, pos_label={pos_label}, "
+             f"threshold={threshold}, categ_columns={categ_columns}")
 
     def progress(status):
         self.update_state(state='PROGRESS', meta={'status': status})
@@ -68,10 +70,12 @@ def fairness_analysis(self, df_json, pos_label=1, threshold=0.65):
 
     # Specify model
     # model = AgglomerativeClustering(n_clusters=50, linkage='single')
-    model = KMeans(n_clusters=50)
+    model = choose_model(algorithm, param_dict)
+    log.info(f"Model {model}")
 
     # Test fairness of the classification model
-    fair_res = test_model_fairness(model, data, pos_label=pos_label, threshold=threshold, progress=progress)
+    fair_res = test_model_fairness(model, data, pos_label=pos_label, threshold=threshold, categ_columns=categ_columns,
+                                   progress=progress)
 
     # Return result as json
     return fair_res.to_json()

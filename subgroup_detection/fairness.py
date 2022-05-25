@@ -218,7 +218,8 @@ def print_cluster_fairness(data, cluster_labels, groups, pos_label):
         print('\tAccuracy:', '%.4f' % row.c_acc, '(cluster),', row.g_acc, '(group)')
 
 
-def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=None, progress=lambda msg: None):
+def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=None, label_column='class',
+                        prediction_column='out', progress=lambda msg: None):
     """
 
     @param model: Clustering model to train on the data
@@ -233,6 +234,10 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     @param categ_columns: List of categorical columns or None. If None, then all columns
     with type 'category' or 'object' are encoded
     @type categ_columns: None or list of str
+    @param label_column: Name of column with ground-truth class labels
+    @type label_column: str
+    @param prediction_column: Name of column with predicted class labels
+    @type prediction_column: str
     @param progress: Callback function to report progress on the task instance (celery)
     @type progress: Callable[str, None]
     @return: Model fairness and other statistics
@@ -240,14 +245,14 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     """
     # Train clustering model
     progress('Training clustering model ...')
-    x = prepare(data, categ_columns)
+    x = prepare(data, categ_columns=categ_columns, label_column=label_column, prediction_column=prediction_column)
     m = model.fit(x)
     clustering = m.labels_
 
     # Set clustering labels
     data_clustered = data.copy()
     data_clustered['cluster'] = clustering
-    data_clustered = data_clustered.drop(labels=['out', 'class'], axis=1)
+    data_clustered = data_clustered.drop(labels=[label_column, prediction_column], axis=1)
     # data_clustered = data_clustered[data_clustered['cluster'] >= 0]  # remove outliers (cluster -1)
 
     # Subgroups via normalized cluster entropy
