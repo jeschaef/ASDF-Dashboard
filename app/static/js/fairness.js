@@ -590,6 +590,11 @@ function makeSelectPicker(p, id, options) {
 
 
 function getClusteringParameters() {
+
+    // Info for selected algorithm
+    const algo = $algorithm.val()
+    const info = clustering_info[algo]
+
     const $modal_row = $('#modal-row')
     const parameters = []
     const values = []
@@ -598,6 +603,9 @@ function getClusteringParameters() {
         if (!val)
             continue    // skip empty inputs
         parameters.push(p.name)
+
+        // Parse input value
+        console.log("type", info[p.name])
         values.push(val)
     }
     return [parameters, values]
