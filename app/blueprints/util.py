@@ -108,6 +108,8 @@ def _metrics():
 
 def choose_model(algorithm, param_dict):
     model_cls = _model_dict()[algorithm]  # select model from dict
+    if param_dict is None:
+        param_dict = {}
     return clustering.choose_model(model_cls, param_dict)
 
 
