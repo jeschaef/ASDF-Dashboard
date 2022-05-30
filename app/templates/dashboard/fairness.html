@@ -7,7 +7,7 @@
 
 
 {% block inner_content %}
-<form class="mx-2 p-0" id="fairness-form">
+<form class=" px-3" id="fairness-form">
     <div class="row gx-5 gy-3 border rounded shadow">
 
         <!-- Dataset selectpicker -->
@@ -109,19 +109,14 @@
 </form>
 
 
-<div class="row">
-    <p>
-        Additional parameters/selections/customization
-
-        Categorical columns
-    </p>
+<div class="row my-1">
     <div class="alert alert-info" id="task-status" role="alert" style="display: none;">
         Display progress information
     </div>
 </div>
 
 <div id="chart-area" class="chart-area" style="display: none">
-    <div class="row gy-5 gx-3">
+    <div class="row gy-4 gx-3">
         <div class="col col-sm-6 border rounded shadow p-0">
             <div class="chart-container">
                 <canvas id="chart-fair"></canvas>
@@ -155,14 +150,12 @@
             </div>
         </div>
 
-        <div class="col col-sm-6">
-            <div class="border rounded shadow p-0">
-                <div class="chart-container">
-                    <p>Empty</p>
-                </div>
+        <div class="col col-sm-6 border rounded shadow p-0">
+            <div class="chart-container">
+                <canvas id="chart-ranking"></canvas>
             </div>
-
         </div>
+
     </div>
 
 </div>

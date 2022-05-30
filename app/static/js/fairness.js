@@ -25,6 +25,7 @@ let result = null                           // Global variable to hold fairness 
 const fair_chart = createFairChart()
 const group_chart = createGroupChart()
 const select_chart = createSelectionChart()
+Mconst ranking_chart = createRankingChart()
 
 // Table
 const $table = $('#table-groups')
@@ -276,6 +277,55 @@ function updateSelectionChart(index) {
 }
 
 
+function createRankingChart() {
+    const labels = [1,2,3,4,5];
+
+    // Define datasets (empty)
+    const datasets = {
+        labels: labels,
+        datasets: [{
+            label: 'Ranking',
+            backgroundColor: 'rgba(99, 255, 138, 0.2)',
+            borderColor: 'rgb(99, 255, 138)',
+            borderWidth: 1,
+            borderRadius: 1,
+            data: [],
+        }]
+    };
+
+    // Chart config
+    const config = {
+        type: 'bar',
+        data: datasets,
+        options: {
+            layout: {
+                padding: 20
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: "Subgroup ranking"
+                }
+            },
+            maintainAspectRatio: false,
+        }
+    };
+
+    return new Chart(
+        document.getElementById('chart-ranking'),
+        config
+    );
+}
+
+
+
+function updateRankingChart(data) {
+    // Update chart
+    group_chart.data.labels = []      // ids of top 5 clusters/subgroups
+    group_chart.data.datasets[0].data = data
+}
+
+
 function clearChart(chart) {
     chart.data.datasets.forEach((dataset) => {
         dataset.data.pop();
@@ -403,6 +453,9 @@ function displayResult() {
 
     // Init table
     initTable(data, result)
+
+    // Plot top-5 ranking for selected criterion
+    updateRankingChart()
 }
 
 
@@ -426,7 +479,8 @@ function initTable(data) {
     }
 
     // Init bootstrap-table
-    $table.bootstrapTable({columns: columns, data: data})
+    $table.bootstrapTable({columns: columns})
+    $table.bootstrapTable('load', data)
 }
 
 
