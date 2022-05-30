@@ -25,7 +25,7 @@ let result = null                           // Global variable to hold fairness 
 const fair_chart = createFairChart()
 const group_chart = createGroupChart()
 const select_chart = createSelectionChart()
-Mconst ranking_chart = createRankingChart()
+const ranking_chart = createRankingChart()
 
 // Table
 const $table = $('#table-groups')
