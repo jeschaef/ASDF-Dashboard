@@ -137,9 +137,8 @@ function createFairChart() {
 
 function updateFairChart() {
     const [c_data, g_data] = parseFairnessResult()
-    fair_chart.data.datasets[0].data = c_data.slice()
-    fair_chart.data.datasets[1].data = g_data.slice()
-    console.log(fair_chart)
+    fair_chart.data.datasets[0].data = c_data
+    fair_chart.data.datasets[1].data = g_data
     setChartHeight(fair_chart)
     fair_chart.update();
 }
@@ -197,9 +196,9 @@ function updateGroupChart(k) {
     const group_sizes = result.group_sizes
 
     // Update chart
-    group_chart.data.labels = [0,1,2]//[...counts.keys()]      // [0,1,2,...,k-1]
-    group_chart.data.datasets[0].data = [15,20,30] //counts.slice()
-    group_chart.data.datasets[1].data = [10,22,33] //group_sizes.slice()
+    group_chart.data.labels = [...counts.keys()]      // [0,1,2,...,k-1]
+    group_chart.data.datasets[0].data = counts
+    group_chart.data.datasets[1].data = group_sizes
 
     // Reset size based on k
     const barpx = 30
@@ -319,11 +318,42 @@ function createRankingChart() {
 }
 
 
-function updateRankingChart(data) {
+function updateRankingChart() {
+
+    // Get selected criterium & ascending/descending
+    const selection = "c_stat_par"
+
+    // Order by selection
+    const raw_data = JSON.parse(result.raw)[selection]
+    const [labels, values] = sortData(raw_data, true, 5)
+
     // Update chart
-    group_chart.data.labels = []      // ids of top 5 clusters/subgroups
-    group_chart.data.datasets[0].data = data
+    ranking_chart.data.labels = labels.slice(0,5)      // ids of top 5 clusters/subgroups
+    ranking_chart.data.datasets[0].data = values.slice(0,5)
+    setChartHeight(ranking_chart)
+    ranking_chart.update()
 }
+
+
+function sortData(data, ascending=true, top=5) {
+    let items = Object.keys(data).map(function (key) {
+        return [key, data[key]]
+    })
+    if (ascending) {
+        items.sort(function (first, second) {
+            return first[1] - second[1]
+        })
+    } else {
+        items.sort(function (first, second) {
+            return second[1] - first[1]
+        })
+    }
+    const labels = items.map(i => i.slice(0,1)[0])
+    const values = items.map(i => i.slice(1,2)[0])
+    console.log(items, labels, values)
+    return [labels, values]
+}
+
 
 
 function clearChart(chart) {
@@ -430,7 +460,7 @@ function displayResult() {
     $area.show()
 
     // Plot subgroup fairness data
-    // updateFairChart()
+    updateFairChart()
 
     // Plot clustering/entropy-based groups data
     const k = Math.max(...result.clustering) + 1
@@ -761,5 +791,7 @@ $(function () {
 
     // Cluster algorithm parameter clear all button
     $clear_params.click(clearClusteringParameters)
+
+    $area.show()
 });
 
