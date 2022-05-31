@@ -49,7 +49,7 @@ def delete_data(owner, dataset):
     os.remove(file_path)
 
 
-@cache.memoize(timeout=0)
+# @cache.memoize(timeout=600)
 def get_clustering_info():
     return _model_params()
 
@@ -59,6 +59,10 @@ def _model_dict():
         "kmeans": KMeans,
         "dbscan": DBSCAN,
         "optics": OPTICS,
+        "agglomerative": AgglomerativeClustering,
+        "birch": Birch,
+        "meanshift": MeanShift,
+        "spectral": SpectralClustering
     }
 
 
@@ -96,6 +100,38 @@ def _model_params():
             "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
             "leaf_size": "int",
         },
+        "agglomerative": {
+            "n_clusters": "int",
+            "affinity": ["euclidean", "l1", "l2", "manhattan", "cosine"],
+            "linkage": ["ward", "complete", "average", "single"],
+            "distance_threshold": "float",
+        },
+        "birch": {
+            "threshold": "float",
+            "branching_factor": "int",
+            "n_clusters": "int"
+        },
+        "meanshift": {
+            "bandwidth": "float",
+            "bin_seeding": "bool",
+            "min_bin_freq": "int",
+            "cluster_all": "bool",
+            "max_iter": "int"
+        },
+        "spectral": {
+            "n_clusters": "int",
+            "n_components": "int",
+            "random_state": "int",
+            "n_init": "int",
+            "gamma": "float",
+            "affinity": ["nearest_neighbors", "rbf", "additive_chi2", "chi2", "linear", "poly", "polynomial",
+                         "laplacian", "sigmoid", "cosine"],
+            "n_neighbors": "int",
+            "eigen_tol": "float",
+            "assign_labels": ["kmeans", "discretize", "cluster_qr"],
+            "degree": "float",
+            "coef0": "float",
+        }
     }
 
 
@@ -110,11 +146,12 @@ def choose_model(algorithm, param_dict):
     model_cls = _model_dict()[algorithm]  # select model from dict
     if param_dict is None:
         param_dict = {}
-    return clustering.choose_model(model_cls, param_dict)
+    # return clustering.choose_model(model_cls, param_dict)
+    return model_cls().set_params(**param_dict)
 
 
 def get_param_dict(algorithm, parameters, values):
-    if not parameters and not values:       # If lists are empty, return None
+    if not parameters and not values:  # If lists are empty, return None
         return None
 
     info = _model_params()[algorithm]

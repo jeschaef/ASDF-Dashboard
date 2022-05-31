@@ -137,8 +137,9 @@ function createFairChart() {
 
 function updateFairChart() {
     const [c_data, g_data] = parseFairnessResult()
-    fair_chart.data.datasets[0].data = c_data
-    fair_chart.data.datasets[1].data = g_data
+    fair_chart.data.datasets[0].data = c_data.slice()
+    fair_chart.data.datasets[1].data = g_data.slice()
+    console.log(fair_chart)
     setChartHeight(fair_chart)
     fair_chart.update();
 }
@@ -196,9 +197,9 @@ function updateGroupChart(k) {
     const group_sizes = result.group_sizes
 
     // Update chart
-    group_chart.data.labels = [...counts.keys()]      // [0,1,2,...,k-1]
-    group_chart.data.datasets[0].data = counts
-    group_chart.data.datasets[1].data = group_sizes
+    group_chart.data.labels = [0,1,2]//[...counts.keys()]      // [0,1,2,...,k-1]
+    group_chart.data.datasets[0].data = [15,20,30] //counts.slice()
+    group_chart.data.datasets[1].data = [10,22,33] //group_sizes.slice()
 
     // Reset size based on k
     const barpx = 30
@@ -278,7 +279,7 @@ function updateSelectionChart(index) {
 
 
 function createRankingChart() {
-    const labels = [1,2,3,4,5];
+    const labels = [1, 2, 3, 4, 5];
 
     // Define datasets (empty)
     const datasets = {
@@ -316,7 +317,6 @@ function createRankingChart() {
         config
     );
 }
-
 
 
 function updateRankingChart(data) {
@@ -430,7 +430,7 @@ function displayResult() {
     $area.show()
 
     // Plot subgroup fairness data
-    updateFairChart()
+    // updateFairChart()
 
     // Plot clustering/entropy-based groups data
     const k = Math.max(...result.clustering) + 1
@@ -616,6 +616,11 @@ function setClusteringParameters() {
             const $s = makeSelectPicker(p, id, t)
             $modal_row.append($s)
             $s.selectpicker('refresh')
+        } else if (t === "bool") {
+            $modal_row.append($('<div class="col col-sm-7 form-check form-switch">' +
+                '<input class="form-check-input" type="checkbox" role="switch" id="' + id + '" name="' + p + '">' +
+                '</div>'))
+
         } else {
             // Default input element
             const $input = $('<input class="col col-sm-7 form-control" id="' + id + '" name="' + p + '" ' +
@@ -656,9 +661,17 @@ function getClusteringParameters() {
         let val = $(p).val()
         if (!val)
             continue    // skip empty inputs
+        // Distinguish switches from other inputs
+        if ($(p).attr('role') === "switch") {
+            val = $(p).is(':checked')
+            console.log(p.name, $(p).is(":checked"))
+        }
+
         parameters.push(p.name)
-        values.push(val)
+        console.log(p.name, val)
+        values.push(JSON.parse(val))
     }
+
     return [parameters, values]
 }
 
@@ -672,6 +685,8 @@ function clearClusteringParameters() {
         $(s).find('option:selected').prop('selected', false)
         $(s).selectpicker('refresh')
     }
+    // set all switches to unchecked
+    $row.find('input[role=switch]').prop("checked", false)
 }
 
 
@@ -746,6 +761,5 @@ $(function () {
 
     // Cluster algorithm parameter clear all button
     $clear_params.click(clearClusteringParameters)
-
 });
 
