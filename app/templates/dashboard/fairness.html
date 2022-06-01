@@ -158,16 +158,22 @@
 
         <div class="col col-6">
             <div class="border rounded shadow p-0">
-                <select class="selectpicker" id="select-ranking">
-                    <option value="c_stat_par">Cluster statistical parity</option>
-                    <option value="c_eq_opp">Cluster equal opportunity</option>
-                    <option value="c_avg_odds">Cluster avg. equalized odds</option>
-                    <option value="c_acc">Cluster accuracy</option>
-                    <option value="g_stat_par">Subgroup statistical parity</option>
-                    <option value="g_eq_opp">Subgroup equal opportunity</option>
-                    <option value="g_avg_odds">Subgroup avg. equalized odds</option>
-                    <option value="g_acc">Subgroup accuracy</option>
-                </select>
+                <div class="row p-2 gx-5">
+                    <select class="selectpicker col col-6" id="select-ranking" data-width="50%">
+                        <option value="c_stat_par">Cluster statistical parity</option>
+                        <option value="c_eq_opp">Cluster equal opportunity</option>
+                        <option value="c_avg_odds">Cluster avg. equalized odds</option>
+                        <option value="c_acc">Cluster accuracy</option>
+                        <option value="g_stat_par">Subgroup statistical parity</option>
+                        <option value="g_eq_opp">Subgroup equal opportunity</option>
+                        <option value="g_avg_odds">Subgroup avg. equalized odds</option>
+                        <option value="g_acc">Subgroup accuracy</option>
+                    </select>
+                    <div class="col col-6 form-check form-switch col-form-label-lg">
+                        <input class="form-check-input" type="checkbox" role="switch" id="switch-ranking-order">
+                        <label class="form-check-label" for="switch-ranking-order">Ascending</label>
+                    </div>
+                </div>
                 <div class="chart-container">
                     <canvas id="chart-ranking"></canvas>
                 </div>

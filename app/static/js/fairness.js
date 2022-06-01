@@ -9,7 +9,8 @@ const $algorithm = $('#select-algo')            // Clustering algorithm selectpi
 const $params = $('#parameter-button')          // Button for clustering algorithm parameters
 const $modal_body = $('#parameter-modal-body')  // Clustering parameter modal body
 const $clear_params = $('#parameter-clear')     // Clear algorithm params button
-const $select_ranking = $('#select-ranking')    // Ranking criterion selection
+const $select_rank = $('#select-ranking')       // Ranking criterion selection
+const $switch_rank = $('#switch-ranking-order') // Ascending/descending switch for ranking
 const $form = $('#fairness-form')               // Full fairness form (dataset, threshold, class label, ...)
 
 // Popovers
@@ -320,16 +321,18 @@ function createRankingChart() {
 }
 
 
-function updateRankingChart(selection) {
+function updateRankingChart() {
 
     // Order by selection
+    const selection = $select_rank.val()
+    const is_ascending = !($switch_rank.is(":checked"))
     const raw_data = JSON.parse(result.raw)[selection]
-    const [labels, values] = sortData(raw_data, true, 5)
+    const [labels, values] = sortData(raw_data, is_ascending, 5)
 
     // Update chart
     ranking_chart.data.labels = labels.slice(0, 5)      // ids of top 5 clusters/subgroups
     ranking_chart.data.datasets[0].data = values.slice(0, 5)
-    const select_height = $select_ranking.parent().height()
+    const select_height = $select_rank.parent().height()
     setChartHeight(ranking_chart, 500 - select_height)
     ranking_chart.update()
 }
@@ -483,7 +486,7 @@ function displayResult() {
     initTable(data, result)
 
     // Plot top-5 ranking for selected criterion
-    updateRankingChart($select_ranking.val())
+    updateRankingChart($select_rank.val())
 }
 
 
@@ -727,9 +730,10 @@ function highlightSubgroup(evt, source_chart, needs_sort=false) {
         // Then, index equals the top n subgroup according to selection
         let index = elem[0].index
         if (needs_sort) {
-            const selection = $select_ranking.val()
+            const selection = $select_rank.val()
             const raw_data = JSON.parse(result.raw)[selection]
-            const [labels, values] = sortData(raw_data, true, 5)        // TODO sorting order selection
+            const is_ascending = ! ($switch_rank.is(":checked"))
+            const [labels, values] = sortData(raw_data, is_ascending, 5)
             index = labels[index]
         }
 
@@ -810,8 +814,14 @@ $(function () {
     $clear_params.click(clearClusteringParameters)
 
     // Ranking selectpicker
-    $select_ranking.on('change', function () {
-        updateRankingChart($(this).val())
+    $select_rank.on('change', updateRankingChart)
+
+    // Ranking asc/desc switch
+    $switch_rank.change(function () {
+        let $label = $("label[for='" + $(this).attr('id') + "']");
+        const label_text = ($(this).is(":checked") ? "Descending" : "Ascending")
+        $label.text(label_text)
+        updateRankingChart()
     })
 
 });
