@@ -2,10 +2,6 @@ body {
     min-height: 100%;
 }
 
-html {
-    height: 100%;
-}
-
 main {
     display: flex;
     flex-wrap: nowrap;
@@ -20,6 +16,7 @@ main {
 .dashboard-content {
     flex-grow: 1;
     overflow-y: hidden;
+    margin-left: var(--sidebar-width);
 }
 
 .bi {

@@ -2,8 +2,10 @@
 
 {% block inner_content %}
 
-<form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.inspect') }}">
-    <div class="row">
+<form method="POST" enctype=multipart/form-data action="{{ url_for('dashboard.inspect') }}"
+    class="border rounded shadow p-2">
+    <h1 class="h2">Dataset Inspection</h1>
+    <div class="row row p-2 gx-5 gy-3">
         <label for="dataset-select" class="col-sm-2 col-form-label-lg">Select a dataset</label>
         <div class="col-sm-3">
             <select class="selectpicker" id="dataset-select" name="dataset"
@@ -20,7 +22,10 @@
     </div>
 </form>
 
-<table id="dstable"
+
+<div class="border rounded shadow p-2 mt-3">
+    <h1 class="h2">{{dataset.name}}</h1>
+    <table id="dstable"
        data-toggle="table"
        data-classes="table table-hover"
        data-side-pagination="server"
@@ -44,6 +49,8 @@
     </tr>
     </thead>
 </table>
+
+</div>
 
 {% endblock %}
 

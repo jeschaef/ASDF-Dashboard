@@ -10,7 +10,6 @@ function queryParams(params) {
 
 $('#dataset-select').on('change', function () {
     const selection = $(this).val()
-    console.log(selection);
     let $form = $(this).closest('form');
     $form.submit()
 });

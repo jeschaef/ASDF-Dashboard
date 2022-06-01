@@ -5,26 +5,37 @@
 
 
 {% block inner_content %}
-<h1 class="h1">Datasets</h1>
-
-<div class="pt-5">
-    <h1 class="h4">Upload a dataset</h1>
+<div class="border rounded shadow p-2">
+    <h1 class="h2">Dataset Upload</h1>
 
     <form method="POST" enctype=multipart/form-data>
-        {{ form.csrf_token() }}
+        <div class="row p-2 gx-5 gy-3">
+            {{ form.csrf_token() }}
 
-        {{ render_field(form.dataset, form.is_submitted()) }}
-        {{ render_field(form.name, form.is_submitted()) }}
-        {{ render_field(form.description, form.is_submitted()) }}
-        {{ render_field(form.label_column, form.is_submitted()) }}
-        {{ render_field(form.prediction_column, form.is_submitted()) }}
-
-        {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
+            <div class="col col-4">
+                {{ render_field(form.dataset, form.is_submitted()) }}
+            </div>
+            <div class="col col-4">
+                {{ render_field(form.name, form.is_submitted()) }}
+            </div>
+            <div class="col col-4">
+                {{ render_field(form.description, form.is_submitted()) }}
+            </div>
+            <div class="col col-4">
+                {{ render_field(form.label_column, form.is_submitted()) }}
+            </div>
+            <div class="col col-4">
+                {{ render_field(form.prediction_column, form.is_submitted()) }}
+            </div>
+            <div class="col col-4">
+                {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
+            </div>
+        </div>
     </form>
 </div>
 
-<div class="pt-5">
-    <h1 class="h4">View your datasets</h1>
+<div class="border rounded shadow mt-3 p-2">
+    <h1 class="h2" id="dataset-header">Uploaded datasets</h1>
 
     <div id="toolbar">
         <button id="remove" class="btn btn-danger" disabled>
