@@ -1,35 +1,36 @@
 {% extends "dashboard/dashboard_base.html" %}
 
 {% block inner_content %}
-<h1 class="h1">Index</h1>
+<div class="border rounded shadow p-2">
+    <h1 class="h2">Index</h1>
 
-<div class="pt-5">
-    This dashboard helps you to analyze the fairness of your classifier on a dataset.
+    <div class="pt-5">
+        This dashboard helps you to analyze the fairness of your classifier on a dataset.
+    </div>
+
+    <div class="pt-5">
+        <h1 class="h2">Upload your dataset</h1>
+        <a href="{{ url_for('dashboard.datasets') }}">Upload</a> a new dataset with class labels
+        predicted by your classifier.
+    </div>
+
+    <div class="pt-5">
+        <h1 class="h2">Subgroup fairness evaluation</h1>
+        For your uploaded datasets and classification results you can perform a <a
+            href="{{ url_for('dashboard.fairness') }}">subgroup fairness assessment</a>
+        using an automated process.
+        <br/>
+        The automated process computes a configurable clustering
+        on the uploaded data and derives subgroups from the clusters in two ways:
+        <ul>
+            <li>The computed clusters are directly used as subgroups to assess the classification model's
+                fairness on them.
+            </li>
+            <li>From the clusters, patterns are extracted that describe the makeup of the cluster for
+                all the dominant features in the corresponding cluster.
+            </li>
+        </ul>
+    </div>
 </div>
-
-<div class="pt-5">
-    <h1 class="h4">Upload your dataset</h1>
-    <a href="{{ url_for('dashboard.datasets') }}">Upload</a> a new dataset with class labels
-    predicted by your classifier.
-</div>
-
-<div class="pt-5">
-    <h1 class="h4">Subgroup fairness evaluation</h1>
-    For your uploaded datasets and classification results you can perform a <a
-        href="{{ url_for('dashboard.fairness') }}">subgroup fairness assessment</a>
-    using an automated process.
-    <br/>
-    The automated process computes a configurable clustering
-    on the uploaded data and derives subgroups from the clusters in two ways:
-    <ul>
-        <li>The computed clusters are directly used as subgroups to assess the classification model's
-            fairness on them.
-        </li>
-        <li>From the clusters, patterns are extracted that describe the makeup of the cluster for
-            all the dominant features in the corresponding cluster.
-        </li>
-    </ul>
-</div>
-
 
 {% endblock %}
