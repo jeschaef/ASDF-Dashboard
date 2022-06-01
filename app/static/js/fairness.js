@@ -9,6 +9,7 @@ const $algorithm = $('#select-algo')            // Clustering algorithm selectpi
 const $params = $('#parameter-button')          // Button for clustering algorithm parameters
 const $modal_body = $('#parameter-modal-body')  // Clustering parameter modal body
 const $clear_params = $('#parameter-clear')     // Clear algorithm params button
+const $select_ranking = $('#select-ranking')    // Ranking criterion selection
 const $form = $('#fairness-form')               // Full fairness form (dataset, threshold, class label, ...)
 
 // Popovers
@@ -19,6 +20,7 @@ const popover_params = new bootstrap.Popover(document.getElementById('popover-pa
 const $canv_fair = $('#chart-fair')         // Canvas for fair chart
 const $canv_group = $('#chart-group')       // Canvas for group chart
 const $canv_select = $('#chart-select')     // Canvas for selection chart
+const $canv_ranking = $('#chart-ranking')  // Canvas of ranking chart
 
 // Create empty charts
 let result = null                           // Global variable to hold fairness analysis result
@@ -318,42 +320,38 @@ function createRankingChart() {
 }
 
 
-function updateRankingChart() {
-
-    // Get selected criterium & ascending/descending
-    const selection = "c_stat_par"
+function updateRankingChart(selection) {
 
     // Order by selection
     const raw_data = JSON.parse(result.raw)[selection]
     const [labels, values] = sortData(raw_data, true, 5)
 
     // Update chart
-    ranking_chart.data.labels = labels.slice(0,5)      // ids of top 5 clusters/subgroups
-    ranking_chart.data.datasets[0].data = values.slice(0,5)
-    setChartHeight(ranking_chart)
+    ranking_chart.data.labels = labels.slice(0, 5)      // ids of top 5 clusters/subgroups
+    ranking_chart.data.datasets[0].data = values.slice(0, 5)
+    const select_height = $select_ranking.parent().height()
+    setChartHeight(ranking_chart, 500 - select_height)
     ranking_chart.update()
 }
 
 
-function sortData(data, ascending=true, top=5) {
+function sortData(data, ascending = true, top = 5) {
     let items = Object.keys(data).map(function (key) {
         return [key, data[key]]
     })
     if (ascending) {
         items.sort(function (first, second) {
-            return first[1] - second[1]
+            return (first[1] != null ? first[1] : Infinity) - (second[1] != null ? second[1] : Infinity)
         })
     } else {
         items.sort(function (first, second) {
-            return second[1] - first[1]
+            return (second[1] != null ? second[1] : -Infinity) - (first[1] != null ? first[1] : -Infinity)
         })
     }
-    const labels = items.map(i => i.slice(0,1)[0])
-    const values = items.map(i => i.slice(1,2)[0])
-    console.log(items, labels, values)
+    const labels = items.map(i => i.slice(0, 1)[0])
+    const values = items.map(i => i.slice(1, 2)[0])
     return [labels, values]
 }
-
 
 
 function clearChart(chart) {
@@ -364,8 +362,8 @@ function clearChart(chart) {
 }
 
 
-function setChartHeight(chart) {
-    chart.canvas.parentNode.style.height = '500px';
+function setChartHeight(chart, height = 500) {
+    chart.canvas.parentNode.style.height = height + 'px';
 }
 
 
@@ -485,7 +483,7 @@ function displayResult() {
     initTable(data, result)
 
     // Plot top-5 ranking for selected criterion
-    updateRankingChart()
+    updateRankingChart($select_ranking.val())
 }
 
 
@@ -720,6 +718,34 @@ function clearClusteringParameters() {
 }
 
 
+function highlightSubgroup(evt, source_chart, needs_sort=false) {
+    const elem = source_chart.getElementsAtEventForMode(evt, 'nearest', {intersect: false}, true)
+    if (elem && elem.length === 1) {
+        // const dataset = elem[0].datasetIndex
+
+        // A sort is needed if the elements index does not match the displayed subgroup's index
+        // Then, index equals the top n subgroup according to selection
+        let index = elem[0].index
+        if (needs_sort) {
+            const selection = $select_ranking.val()
+            const raw_data = JSON.parse(result.raw)[selection]
+            const [labels, values] = sortData(raw_data, true, 5)        // TODO sorting order selection
+            index = labels[index]
+        }
+
+        // Scroll to page & row for selected subgroup
+        const page_size = $table.bootstrapTable('getOptions').pageSize
+        const goto_page = Math.floor(index / page_size) + 1         // page numbers start at 1 not 0...
+        const scroll_index = index % page_size
+        $table.bootstrapTable('selectPage', goto_page)
+        $table.bootstrapTable('scrollTo', {unit: 'rows', value: scroll_index})
+
+        // Show bars for selected subgroup
+        updateSelectionChart(index)
+    }
+}
+
+
 $(function () {
 
     // Add button functionality (submit task)
@@ -739,24 +765,15 @@ $(function () {
         $label.text("Entropy threshold: " + threshold)
     })
 
-    // Add click listener on group chart (bar)
+    // Add click listener to highlight selected subgroup on group chart (bar) and ranking chart (bar)
     $canv_group.click(function (evt) {
-        const elem = group_chart.getElementsAtEventForMode(evt, 'nearest', {intersect: false}, true)
-        if (elem && elem.length === 1) {
-            const dataset = elem[0].datasetIndex
-            const index = elem[0].index
-
-            // Scroll to page & row for selected subgroup
-            const page_size = $table.bootstrapTable('getOptions').pageSize
-            const goto_page = Math.floor(index / page_size) + 1         // page numbers start at 1 not 0...
-            const scroll_index = index % page_size
-            $table.bootstrapTable('selectPage', goto_page)
-            $table.bootstrapTable('scrollTo', {unit: 'rows', value: scroll_index})
-
-            // Show bars for selected subgroup
-            updateSelectionChart(index)
-        }
+        highlightSubgroup(evt, group_chart, false)      // no sort needed -> bars ordered by group index
     })
+
+    $canv_ranking.click(function (evt) {
+        highlightSubgroup(evt, ranking_chart, true)     // sort needed -> bar ordered by ranking (not group)
+    })
+
 
     // Add click listener on fair chart (radar)
     $canv_fair.click(function (evt) {
@@ -792,6 +809,10 @@ $(function () {
     // Cluster algorithm parameter clear all button
     $clear_params.click(clearClusteringParameters)
 
-    $area.show()
+    // Ranking selectpicker
+    $select_ranking.on('change', function () {
+        updateRankingChart($(this).val())
+    })
+
 });
 

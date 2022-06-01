@@ -7,8 +7,8 @@
 
 
 {% block inner_content %}
-<form class=" px-3" id="fairness-form">
-    <div class="row gx-5 gy-3 border rounded shadow">
+<form class="border rounded shadow px-3" id="fairness-form">
+    <div class="row p-2 gx-5 gy-3">
 
         <!-- Dataset selectpicker -->
         <div class="col col-sm-1">
@@ -104,7 +104,6 @@
             <input class="btn btn-lg btn-primary" id="task-submit" name="submit" type="button"
                    value="Evaluate Fairness"/>
         </div>
-
     </div>
 </form>
 
@@ -117,13 +116,15 @@
 
 <div id="chart-area" class="chart-area" style="display: none">
     <div class="row gy-4 gx-3">
-        <div class="col col-sm-6 border rounded shadow p-0">
-            <div class="chart-container">
-                <canvas id="chart-fair"></canvas>
+        <div class="col col-6">
+            <div class="border rounded shadow p-0">
+                <div class="chart-container">
+                    <canvas id="chart-fair"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="col col-sm-6">
+        <div class="col col-6">
             <div class="border rounded shadow p-0">
                 <div class="overflow-x-auto">
                     <div class="chart-container">
@@ -134,28 +135,41 @@
 
         </div>
 
-        <div class="col col-sm-12 border rounded shadow p-0">
-            <table id="table-groups"
-                   data-pagination="true"
-                   data-page-list="[5, 10, 25, 50, all]"
-                   data-detail-view="true"
-                   data-detail-view-by-click="true"
-                   data-height="500">
-            </table>
-        </div>
-
-        <div class="col col-sm-6 border rounded shadow p-0">
-            <div class="chart-container">
-                <canvas id="chart-select"></canvas>
+        <div class="col col-12">
+            <div class="border rounded shadow p-0">
+                <table id="table-groups"
+                       data-pagination="true"
+                       data-page-list="[5, 10, 25, 50, all]"
+                       data-detail-view="true"
+                       data-detail-view-by-click="true"
+                       data-height="500">
+                </table>
             </div>
         </div>
 
-        <div class="col col-sm-6 border rounded shadow p-0">
-            <select class="selectpicker">
-                <option>A</option>
-            </select>
-            <div class="chart-container">
-                <canvas id="chart-ranking"></canvas>
+        <div class="col col-6">
+            <div class="border rounded shadow p-0">
+                <div class="chart-container">
+                    <canvas id="chart-select"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col col-6">
+            <div class="border rounded shadow p-0">
+                <select class="selectpicker" id="select-ranking">
+                    <option value="c_stat_par">Cluster statistical parity</option>
+                    <option value="c_eq_opp">Cluster equal opportunity</option>
+                    <option value="c_avg_odds">Cluster avg. equalized odds</option>
+                    <option value="c_acc">Cluster accuracy</option>
+                    <option value="g_stat_par">Subgroup statistical parity</option>
+                    <option value="g_eq_opp">Subgroup equal opportunity</option>
+                    <option value="g_avg_odds">Subgroup avg. equalized odds</option>
+                    <option value="g_acc">Subgroup accuracy</option>
+                </select>
+                <div class="chart-container">
+                    <canvas id="chart-ranking"></canvas>
+                </div>
             </div>
         </div>
 
