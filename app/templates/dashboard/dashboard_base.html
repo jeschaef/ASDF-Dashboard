@@ -5,7 +5,6 @@
 {% block styles %}
 {{ super() }}
 <link href="{{ url_for('static', filename='css/sidebars.css') }}" rel="stylesheet">
-<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
 {% endblock %}
 
 
@@ -21,7 +20,7 @@
 
 <div class="container-fluid p-0">
     <main class="main">
-        <div class="d-flex flex-column bg-light" style="position: fixed; height: 100vh">
+        <div class="d-flex flex-column bg-light sidebar">
             <a href="{{ url_for('main.index') }}" class="d-block p-3 link-dark text-decoration-none border-bottom">
                 <svg class="bi" width="40" height="32">
                     <use xlink:href="#bootstrap"/>
@@ -68,7 +67,7 @@
                     </a>
                 </li>
             </ul>
-            <div class="dropdown border-top" style="z-index: 1;">
+            <div class="dropdown border-top">
                 <a href="#"
                    class="d-flex align-items-center justify-content-center p-3 link-primary text-decoration-none dropdown-toggle"
                    id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,10 +75,10 @@
                         <use xlink:href="#people-circle"/>
                     </svg>
                 </a>
-                <ul class="dropdown-menu text-small shadow" style="position: absolute;" aria-labelledby="dropdownUser">
-                    <li><a class="dropdown-item" href="#">New project...</a></li>
-                    <li><a class="dropdown-item" href="#">Settings</a></li>
-                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                <ul class="dropdown-menu text-small shadow custom-drop" aria-labelledby="dropdownUser">
+                    <li><a class="dropdown-item" href="{{ url_for('dashboard.datasets') }}">Manage datasets</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('dashboard.fairness') }}">Subgroup fairness</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">Profile</a></li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>

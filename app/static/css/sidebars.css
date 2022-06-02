@@ -5,10 +5,7 @@ body {
 main {
     display: flex;
     flex-wrap: nowrap;
-    height: -webkit-fill-available;
     min-height: 100vh;
-    overflow-x: auto;
-    overflow-y: hidden;
     --sidebar-width: 4.5rem;
 }
 
@@ -84,4 +81,37 @@ main {
 
 .lh-tight {
     line-height: 1.25;
+}
+
+
+body {
+    font-size: .875rem;
+}
+
+/*
+ * Sidebar
+ */
+
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    z-index: 1;
+}
+
+
+/*
+ * Navbar
+ */
+
+.navbar-brand {
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+    font-size: 1rem;
+    background-color: rgba(0, 0, 0, .25);
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+}
+
+.navbar .navbar-toggler {
+    top: .25rem;
+    right: 1rem;
 }
