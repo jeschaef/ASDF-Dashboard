@@ -180,6 +180,25 @@ function createGroupChart() {
                 padding: 20
             },
             maintainAspectRatio: false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function (context) {
+                            // context = TooltipItem[]
+                            let title = ""
+                            if (context[0].datasetIndex === 0)
+                                title = "Cluster "
+                            else if (context[0].datasetIndex === 1)
+                                title = "Subgroup "
+                            return title + context[0].dataIndex
+                        },
+                        label: function (context) {
+                            // context = TooltipItem
+                            return "Size: " + context.parsed.y  // parsed stores x- and y-axis
+                        }
+                    }
+                }
+            }
         }
     };
 
@@ -332,8 +351,8 @@ function updateRankingChart() {
     // Update chart
     ranking_chart.data.labels = labels.slice(0, 5)      // ids of top 5 clusters/subgroups
     ranking_chart.data.datasets[0].data = values.slice(0, 5)
-    const select_height = $select_rank.parent().height()
-    setChartHeight(ranking_chart, 500 - select_height)
+    const outer_height = $('#ranking-config').outerHeight()     // subtract height of ranking config (header)
+    setChartHeight(ranking_chart, 500 - outer_height)
     ranking_chart.update()
 }
 
@@ -721,7 +740,7 @@ function clearClusteringParameters() {
 }
 
 
-function highlightSubgroup(evt, source_chart, needs_sort=false) {
+function highlightSubgroup(evt, source_chart, needs_sort = false) {
     const elem = source_chart.getElementsAtEventForMode(evt, 'nearest', {intersect: false}, true)
     if (elem && elem.length === 1) {
         // const dataset = elem[0].datasetIndex
@@ -732,7 +751,7 @@ function highlightSubgroup(evt, source_chart, needs_sort=false) {
         if (needs_sort) {
             const selection = $select_rank.val()
             const raw_data = JSON.parse(result.raw)[selection]
-            const is_ascending = ! ($switch_rank.is(":checked"))
+            const is_ascending = !($switch_rank.is(":checked"))
             const [labels, values] = sortData(raw_data, is_ascending, 5)
             index = labels[index]
         }
