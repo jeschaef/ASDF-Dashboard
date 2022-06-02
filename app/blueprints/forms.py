@@ -12,7 +12,7 @@ from wtforms_components import StringField, Email, SelectField
 
 from app.auth import verify_password
 from app.blueprints.util import get_redirect_target, is_safe_url
-from app.model import User, Dataset, EMAIL_LENGTH, USER_NAME_LENGTH, PASSWORD_LENGTH, DATASET_NAME_LENGTH
+from app.model import *
 
 log = logging.getLogger()
 
@@ -69,7 +69,7 @@ class RegisterForm(RedirectForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH)])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
     password = PasswordField('Password', validators=[DataRequired(),
-                                                     Length(min=1, max=PASSWORD_LENGTH)])  # todo increase min pw length
+                                                     Length(min=MIN_PASSWORD_LENGTH, max=PASSWORD_LENGTH)])
     confirm = PasswordField('Verify password',
                             validators=[DataRequired(), EqualTo('password', message='Passwords must match')])
     submit = SubmitField('Register')
@@ -178,3 +178,34 @@ class SelectDatasetForm(RedirectForm):
         initial_validation = super(SelectDatasetForm, self).validate()
         if not initial_validation:
             return False
+        return True
+
+
+class ChangePasswordForm(RedirectForm):
+    old_password = PasswordField('Old password', validators=[DataRequired(),
+                                                             Length(min=MIN_PASSWORD_LENGTH,
+                                                                    max=PASSWORD_LENGTH)])
+    new_password = PasswordField('New password', validators=[DataRequired(),
+                                                             Length(min=MIN_PASSWORD_LENGTH,
+                                                                    max=PASSWORD_LENGTH)])
+
+    confirm = PasswordField('Verify new password',
+                            validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+    submit = SubmitField('Change password')
+
+    def __init__(self, current_user_id, *args, **kwargs):
+        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+        self.user = User.query.get(current_user_id)
+        log.debug(f"Get user with id {current_user_id}: {self.user}")
+
+    def validate(self, **kwargs):
+        # Parent validation
+        initial_validation = super(ChangePasswordForm, self).validate()
+        if not initial_validation:
+            return False
+
+        # Verify old password
+        if not verify_password(self.old_password.data, self.user.password):
+            self.old_password.errors.append('Invalid password')
+            return False
+        return True

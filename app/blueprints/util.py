@@ -35,7 +35,7 @@ def redirect_url(endpoint='main.index'):
 
 @cache.memoize(60)  # cache for 1 min TODO change timeout?
 def load_data(owner, dataset):
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
+    file_path = _get_file_path(owner, dataset)
     log.debug(f"Loading data from file {file_path}")
     with open(file_path, 'r') as f:
         f.seek(0)  # reset buffer to avoid EmptyDataError
@@ -43,10 +43,20 @@ def load_data(owner, dataset):
         return pd.read_csv(f)
 
 
+@cache.memoize(60)
+def data_size(owner, dataset):
+    file_path = _get_file_path(owner, dataset)
+    return os.path.getsize(file_path)
+
+
 def delete_data(owner, dataset):
     cache.delete_memoized(load_data, owner, dataset)  # delete from cache, too
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
+    file_path = _get_file_path(owner, dataset)
     os.remove(file_path)
+
+
+def _get_file_path(owner, dataset):
+    return os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
 
 
 # @cache.memoize(timeout=600)

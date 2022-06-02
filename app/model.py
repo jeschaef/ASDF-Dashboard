@@ -7,6 +7,7 @@ from app.db import db
 UUID_LENGTH = 36  # 36 chars = 32 hex digits + 4 dashes
 EMAIL_LENGTH = 100
 USER_NAME_LENGTH = 20
+MIN_PASSWORD_LENGTH = 1   # TODO increase min password length
 PASSWORD_LENGTH = 64
 DATASET_NAME_LENGTH = 30
 FILE_NAME_LENGTH = 50
