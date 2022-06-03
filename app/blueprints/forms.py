@@ -3,15 +3,16 @@ import logging
 import pandas as pd
 
 from flask import redirect, url_for
+from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from pandas.errors import ParserError, EmptyDataError
 from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
 from wtforms_components import StringField, Email, SelectField
 
 from app.auth import verify_password
-from app.blueprints.util import get_redirect_target, is_safe_url
+from app.blueprints.util import get_redirect_target, is_safe_url, get_user_quota
 from app.model import *
 
 log = logging.getLogger()
@@ -97,14 +98,22 @@ class RegisterForm(RedirectForm):
         return True
 
 
+class FileSizeLimit:
+    def __call__(self, form, field):
+        quota = get_user_quota(current_user.id)
+        max_bytes = quota['quota_free']
+        if len(field.data.read()) > max_bytes:
+            raise ValidationError(f"File size must be less than {max_bytes} Bytes")
+
+
 class UploadDatasetForm(RedirectForm):
-    dataset = FileField('Upload a dataset',
-                        validators=[FileRequired('No file provided!'),
-                                    FileAllowed(['csv'], 'Upload must be a csv-file!')])
+    dataset = FileField("", validators=[FileRequired('No file provided!'),
+                                        FileAllowed(['csv'], 'Upload must be a csv-file!'),
+                                        FileSizeLimit()])
     name = StringField('Dataset name', validators=[DataRequired(), Length(min=1, max=DATASET_NAME_LENGTH)])
-    description = StringField('Dataset description')
-    label_column = StringField('Class label column name (default: class)')
-    prediction_column = StringField('Prediction label column name (default: out)')
+    description = StringField('Dataset description (optional)')
+    label_column = StringField('Class label column (default: class)')
+    prediction_column = StringField('Prediction label column (default: out)')
     submit = SubmitField('Upload')
 
     def __init__(self, owner, *args, **kwargs):
@@ -157,7 +166,6 @@ class UploadDatasetForm(RedirectForm):
                 return False
             else:
                 self.prediction_column.data = "out"
-
         else:
             if prediction not in df.columns:
                 self.prediction_column.errors.append(f"Couldn't find column {prediction}")

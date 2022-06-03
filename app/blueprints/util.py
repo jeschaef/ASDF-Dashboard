@@ -7,7 +7,7 @@ from flask import request, abort, url_for, current_app
 from sklearn.cluster import *
 
 from app.cache import cache
-from subgroup_detection import clustering
+from app.model import Dataset
 
 log = logging.getLogger()
 
@@ -47,6 +47,18 @@ def load_data(owner, dataset):
 def data_size(owner, dataset):
     file_path = _get_file_path(owner, dataset)
     return os.path.getsize(file_path)
+
+
+def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):      # TODO MAX_QUOTA
+    all_datasets = Dataset.query.filter_by(owner=owner).all()  # TODO no datasets uploaded yet
+    quota_used = {}
+    bytes_used = 0
+    for d in all_datasets:
+        size = data_size(owner, d.id)
+        quota_used[d.name] = size
+        bytes_used += size
+    bytes_free = MAX_QUOTA - bytes_used
+    return {'quota_used': quota_used, 'quota_free': bytes_free}
 
 
 def delete_data(owner, dataset):
