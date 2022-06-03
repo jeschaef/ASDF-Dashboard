@@ -16,16 +16,16 @@
                 {{ render_field(form.dataset, form.is_submitted()) }}
             </div>
             <div class="col col-4">
-                {{ render_field(form.name, form.is_submitted()) }}
+                {{ render_field(form.name, form.is_submitted(), class='form-floating') }}
             </div>
             <div class="col col-4">
-                {{ render_field(form.description, form.is_submitted()) }}
+                {{ render_field(form.description, form.is_submitted(), class='form-floating') }}
             </div>
             <div class="col col-4">
-                {{ render_field(form.label_column, form.is_submitted()) }}
+                {{ render_field(form.label_column, form.is_submitted(), class='form-floating') }}
             </div>
             <div class="col col-4">
-                {{ render_field(form.prediction_column, form.is_submitted()) }}
+                {{ render_field(form.prediction_column, form.is_submitted(), class='form-floating') }}
             </div>
             <div class="col col-4">
                 {{ form.submit(class="form-control-lg btn btn-lg btn-primary") }}
@@ -62,7 +62,7 @@
             <th data-field="state" data-checkbox="true"></th>
             <th data-field="name">Name</th>
             <th data-field="description">Description</th>
-            <th data-field="date">Upload date</th>
+            <th data-field="date" data-formatter="dateFormatter">Upload date</th>
             <th data-field="label-col">Label column</th>
             <th data-field="prediction-col">Prediction column</th>
             <th data-field="operations" data-formatter="operationFormatter" data-events="operateEvents"
