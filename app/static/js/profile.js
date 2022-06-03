@@ -1,5 +1,11 @@
-const $canv_quota = $('#chart-quota')
+const $password_modal = $('#password-changed')      // Password change modal
+const $canv_quota = $('#chart-quota')               // Quota chart canvas
+
+// Charts
 const quota_chart = createQuotaChart()
+
+// Form
+const $password_form = $('#password-change-form')
 
 
 function formatBytes(bytes, decimals = 2) {
@@ -90,7 +96,12 @@ function updateQuotaChart(data) {
 
 
 (function () {
+    // Show modal for successful password change
+    if (show_modal) {
+        let modal = new bootstrap.Modal($password_modal.get(0), {})
+        modal.show()
+    }
+
     // Get and show quota in chart
     $.getJSON(quota_url, updateQuotaChart)
-
 })()

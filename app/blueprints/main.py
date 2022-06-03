@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, render_template, url_for, redirect
+from flask import Blueprint, render_template, url_for, redirect, request
 from flask_login import login_required, current_user
 
 from app.auth import get_hashed_password
@@ -25,15 +25,23 @@ def index():
 @login_required
 def profile():
     form = ChangePasswordForm(current_user.id)
+    password_updated = request.args.get("password_updated")
+
     if form.validate_on_submit():
+        # set new password
         user = form.user
         user.password = get_hashed_password(form.new_password.data)
         db.session.commit()
-        log.debug(f"Changed password: {user}")
-        # TODO show some success message
-        return redirect(url_for('main.profile'))
 
-    return render_template('profile.html', form=form)
+        # redirect to profile page with modal for successful password update
+        return redirect(url_for('main.profile', password_updated=True))
+
+    elif form.is_submitted():
+        # invalid form was submitted but if the password was updated successfully
+        # directly before this, the modal would show again
+        password_updated = False
+
+    return render_template('profile.html', form=form, password_updated=password_updated)
 
 
 @main.route('/profile/quota')

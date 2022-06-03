@@ -49,19 +49,14 @@ class LoginForm(RedirectForm):
         if not initial_validation:
             return False
 
-        # Check if email (user) is known
-        user = User.query.filter_by(email=self.email.data).first()
-        if not user:
-            self.email.errors.append('Unknown email')
+        # Check if email (user) is known & password is correct (if user exists)
+        # Also stores the user to prevent second database access
+        self.user = User.query.filter_by(email=self.email.data).first()
+        if not self.user or not verify_password(self.password.data, self.user.password):
+            error_msg = 'Invalid email/password'
+            self.email.errors.append(error_msg)
+            self.password.errors.append(error_msg)
             return False
-
-        # Verify password
-        if not verify_password(self.password.data, user.password):
-            self.password.errors.append('Invalid password')
-            return False
-
-        # Store user
-        self.user = user
 
         return True
 
@@ -78,38 +73,31 @@ class RegisterForm(RedirectForm):
     def __init__(self, *args, **kwargs):
         super(RegisterForm, self).__init__(*args, **kwargs)
 
-    def validate(self, **kwargs):
-        # Parent validation
-        initial_validation = super(RegisterForm, self).validate()
-        if not initial_validation:
-            return False
-
+    def validate_username(self, field):
         # Check if username taken
-        user = User.query.filter_by(name=self.username.data).first()
+        user = User.query.filter_by(name=field.data).first()
         if user:
-            self.username.errors.append("Username already registered")
-            return False
+            raise ValidationError("Username already registered")
 
+    def validate_email(self, field):
         # Check if email already taken
-        user = User.query.filter_by(email=self.email.data).first()
+        user = User.query.filter_by(email=field.data).first()
         if user:
-            self.email.errors.append("Email already registered")
-            return False
-        return True
+            raise ValidationError("Email already registered")
 
 
-class FileSizeLimit:
+class FileExceedsQuota:
     def __call__(self, form, field):
         quota = get_user_quota(current_user.id)
         max_bytes = quota['quota_free']
         if len(field.data.read()) > max_bytes:
-            raise ValidationError(f"File size must be less than {max_bytes} Bytes")
+            raise ValidationError(f"Free disk quota is {max_bytes} Bytes")
 
 
 class UploadDatasetForm(RedirectForm):
     dataset = FileField("", validators=[FileRequired('No file provided!'),
                                         FileAllowed(['csv'], 'Upload must be a csv-file!'),
-                                        FileSizeLimit()])
+                                        FileExceedsQuota()])
     name = StringField('Dataset name', validators=[DataRequired(), Length(min=1, max=DATASET_NAME_LENGTH)])
     description = StringField('Dataset description (optional)')
     label_column = StringField('Class label column (default: class)')
@@ -143,19 +131,20 @@ class UploadDatasetForm(RedirectForm):
             return False
 
         # Validate that either label_column is given (& contained in df) or df contains column 'class'
+        success = True          # accumulate following validation errors
         label = self.label_column.data
         if label == "":
             if "class" not in df.columns:
                 self.label_column.errors.append("If no column named 'class' is contained in the data, "
                                                 "a class label column must be provided")
-                return False
+                success = False
             else:
                 self.label_column.data = "class"
 
         else:
             if label not in df.columns:
                 self.label_column.errors.append(f"Couldn't find column {label}")
-                return False
+                success = False
 
         # Validate that either prediction_column is given (& contained in df) or df contains column 'out'
         prediction = self.prediction_column.data
@@ -163,15 +152,15 @@ class UploadDatasetForm(RedirectForm):
             if 'out' not in df.columns:
                 self.prediction_column.errors.append("If no column named 'out' is contained in the data, "
                                                      "a prediction label column must be provided")
-                return False
+                success = False
             else:
                 self.prediction_column.data = "out"
         else:
             if prediction not in df.columns:
                 self.prediction_column.errors.append(f"Couldn't find column {prediction}")
-                return False
+                success = False
 
-        return True
+        return success
 
 
 class SelectDatasetForm(RedirectForm):
@@ -180,13 +169,6 @@ class SelectDatasetForm(RedirectForm):
     def __init__(self, owner, *args, **kwargs):
         super(SelectDatasetForm, self).__init__(*args, **kwargs)
         self.owner = owner
-
-    def validate(self, **kwargs):
-        # Parent validation
-        initial_validation = super(SelectDatasetForm, self).validate()
-        if not initial_validation:
-            return False
-        return True
 
 
 class ChangePasswordForm(RedirectForm):
@@ -204,16 +186,7 @@ class ChangePasswordForm(RedirectForm):
     def __init__(self, current_user_id, *args, **kwargs):
         super(ChangePasswordForm, self).__init__(*args, **kwargs)
         self.user = User.query.get(current_user_id)
-        log.debug(f"Get user with id {current_user_id}: {self.user}")
 
-    def validate(self, **kwargs):
-        # Parent validation
-        initial_validation = super(ChangePasswordForm, self).validate()
-        if not initial_validation:
-            return False
-
-        # Verify old password
-        if not verify_password(self.old_password.data, self.user.password):
-            self.old_password.errors.append('Invalid password')
-            return False
-        return True
+    def validate_old_password(self, field):
+        if not verify_password(field.data, self.user.password):
+            raise ValidationError('Invalid password')

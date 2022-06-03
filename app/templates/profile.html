@@ -14,8 +14,8 @@
 
 <div class="row p-2 gx-5 gy-3">
 
-    <!-- Change password -->
-    <form method="POST" class="col col-4">
+    <!-- Change password form + successful change modal -->
+    <form method="POST" id="password-change-form" class="col col-4">
         <h1 class="h5 ms-4">Change password</h1>
 
         {{ form.csrf_token() }}
@@ -25,8 +25,28 @@
             {{ render_field(form.confirm, form.is_submitted(), class='form-floating') }}
             {{ form.submit(class="w-50 form-floating btn btn-lg btn-primary ms-auto me-auto")}}
         </div>
-
     </form>
+
+    <div class="modal fade" id="password-changed" tabindex="-1"
+         aria-labelledby="password-changed-label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="password-changed-label">Password change successful</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="parameter-modal-body">
+                    Your password has successfully been updated!
+                    <svg class="bi" width="32" height="32" fill="currentColor">
+                        <use xlink:href="#check-lg"/>
+                    </svg>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Quota -->
     <div class="col col-4">
@@ -37,7 +57,6 @@
     <!-- Delete all uploaded datasets -->
     <div class="col col-4">
         <h1 class="h5 ms-4">Delete all uploaded datasets</h1>
-
     </div>
 
 </div>
@@ -50,6 +69,7 @@
 {{ super() }}
 <script>
     const quota_url = JSON.parse('{{ url_for("main.quota") | tojson }}')
+    const show_modal = JSON.parse('{{ password_updated | tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
