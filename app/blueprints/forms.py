@@ -131,7 +131,7 @@ class UploadDatasetForm(RedirectForm):
             return False
 
         # Validate that either label_column is given (& contained in df) or df contains column 'class'
-        success = True          # accumulate following validation errors
+        success = True  # accumulate following validation errors
         label = self.label_column.data
         if label == "":
             if "class" not in df.columns:
@@ -172,15 +172,11 @@ class SelectDatasetForm(RedirectForm):
 
 
 class ChangePasswordForm(RedirectForm):
-    old_password = PasswordField('Old password', validators=[DataRequired(),
-                                                             Length(min=MIN_PASSWORD_LENGTH,
-                                                                    max=PASSWORD_LENGTH)])
+    old_password = PasswordField('Old password', validators=[DataRequired()])
     new_password = PasswordField('New password', validators=[DataRequired(),
-                                                             Length(min=MIN_PASSWORD_LENGTH,
-                                                                    max=PASSWORD_LENGTH)])
-
-    confirm = PasswordField('Verify new password',
-                            validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+                                                             Length(min=MIN_PASSWORD_LENGTH, max=PASSWORD_LENGTH)])
+    confirm = PasswordField('Verify new password', validators=[DataRequired(),
+                                                               EqualTo('new_password', message='Passwords must match')])
     submit = SubmitField('Change password')
 
     def __init__(self, current_user_id, *args, **kwargs):
