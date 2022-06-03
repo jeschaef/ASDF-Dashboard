@@ -1,11 +1,11 @@
-const $password_modal = $('#password-changed')      // Password change modal
-const $canv_quota = $('#chart-quota')               // Quota chart canvas
+const $password_modal = $('#password-changed')          // Password change modal
+const $canv_quota = $('#chart-quota')                   // Quota chart canvas
+const $delete_data = $('#confirm-button-data')          // Confirmation button delete data
+const $delete_account = $('#confirm-button-account')    // Confirmation button delete accounts
 
 // Charts
 const quota_chart = createQuotaChart()
 
-// Form
-const $password_form = $('#password-change-form')
 
 
 function formatBytes(bytes, decimals = 2) {
@@ -44,7 +44,7 @@ function createQuotaChart() {
                 tooltip: {
                     callbacks: {
                         label: function (context) {
-                            let label = context.dataset.label || '';
+                            let label = context.label || '';
 
                             if (label) {
                                 label += ': ';
@@ -55,6 +55,13 @@ function createQuotaChart() {
                             return label;
                         }
                     }
+                },
+                doughnutLabel: {
+                    labels: [{
+                        text: '0%',
+                    }, {
+                        text: 'used',
+                    }]
                 }
             }
         }
@@ -77,22 +84,49 @@ function updateQuotaChart(data) {
 
     // Colors
     let color_scheme = new ColorScheme
-    color_scheme.from_hex('99ff00')
+    color_scheme.from_hex('e67373')
         .scheme('triade')
-        .distance(0.36)
-        .variation('pastel')
+        .distance(1)
+        .variation('pastel')    // results in 12 colors
     let unordered = color_scheme.colors().map(s => '#' + s)        // prepend # for chartjs
-    const colors = []
-    for (let i = 0; i < unordered.length; i++) {
-        colors.push(unordered[(4 * i) % unordered.length])      // reorder colors for a better contrast
-    }
+    const colors = [
+        unordered[0], unordered[4], unordered[8], unordered[1], unordered[5], unordered[9],
+        unordered[2], unordered[6], unordered[10], unordered[3], unordered[7], unordered[11],
+    ]
 
     // Update chart
     quota_chart.data.labels = labels
     quota_chart.data.datasets[0].data = values
     quota_chart.data.datasets[0].backgroundColor = colors
+
+    // Update label (inner text) = percentage of quota
+    const sum_values = values.reduce((pv, cv) => pv + cv, 0)        // contains quota_free, too
+    let percentage = 100 * (sum_values - data.quota_free) / sum_values
+    console.log(sum_values, data.quota_free, percentage )
+    percentage = (Math.round(percentage * 100) / 100).toFixed(2)
+    quota_chart.options.plugins.doughnutLabel.labels[0].text = percentage + '%'
+
+    // Perform update
     quota_chart.update()
 }
+
+
+function deleteDatasets() {
+    // Add hidden form with dataset names and submit it (redirects)
+    let form = $('<form action="' + delete_data_url + '" method="POST" hidden></form>');
+    $('body').append(form);
+    form.submit();
+}
+
+
+
+function deleteAccount() {
+    // First delete datasets
+    deleteDatasets()
+
+    // Now delete account
+}
+
 
 
 (function () {
@@ -104,4 +138,11 @@ function updateQuotaChart(data) {
 
     // Get and show quota in chart
     $.getJSON(quota_url, updateQuotaChart)
+
+    // Confirmation button delete all datasets
+    $delete_data.click(deleteDatasets)
+
+    // Confirmation button delete account
+    $delete_account.click(deleteAccount)
+
 })()

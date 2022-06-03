@@ -7,6 +7,7 @@ from flask import request, abort, url_for, current_app
 from sklearn.cluster import *
 
 from app.cache import cache
+from app.db import db
 from app.model import Dataset
 
 log = logging.getLogger()
@@ -62,9 +63,18 @@ def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):      # TODO MAX_QUOTA
 
 
 def delete_data(owner, dataset):
-    cache.delete_memoized(load_data, owner, dataset)  # delete from cache, too
-    file_path = _get_file_path(owner, dataset)
+    # Remove selected datasets from database &
+    log.debug(f"Delete dataset {dataset}...")
+    db.session.delete(dataset)
+    db.session.commit()
+
+    # Delete cache entry (if exists)
+    cache.delete_memoized(load_data, owner, dataset.id)
+
+    # Remove data files from disk
+    file_path = _get_file_path(owner, dataset.id)
     os.remove(file_path)
+    log.debug(f"Deleted dataset!")
 
 
 def _get_file_path(owner, dataset):

@@ -16,7 +16,7 @@
 
     <!-- Change password form + successful change modal -->
     <form method="POST" id="password-change-form" class="col col-4">
-        <h1 class="h5 ms-4">Change password</h1>
+        <h1 class="h5 ms-4 mb-4">Change password</h1>
 
         {{ form.csrf_token() }}
         <div class="row p-2 g-3 d-flex ">
@@ -50,13 +50,82 @@
 
     <!-- Quota -->
     <div class="col col-4">
-        <h1 class="h5 ms-4">Quota</h1>
+        <h1 class="h5 ms-4 mb-4">Quota</h1>
         <canvas id="chart-quota"></canvas>
     </div>
 
     <!-- Delete all uploaded datasets -->
     <div class="col col-4">
-        <h1 class="h5 ms-4">Delete all uploaded datasets</h1>
+        <div class="row p-2 g-3 d-flex ">
+            <h1 class="h5 ms-4 mb-4">Delete All My Uploaded Datasets</h1>
+            <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-datasets"
+                    data-bs-toggle="modal" data-bs-target="#confirm-delete-data">
+                <svg class="bi" width="20" height="20">
+                    <use xlink:href="#trash-fill"></use>
+                </svg>
+                Delete My Datasets
+            </button>
+
+
+            <div class="modal fade" id="confirm-delete-data" tabindex="-1" aria-labelledby="cdd-label"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cdd-label">Are you sure?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Do you really want to delete your uploaded datasets?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" id="confirm-button-data">
+                                <svg class="bi" width="16" height="16">
+                                    <use xlink:href="#trash-fill"></use>
+                                </svg>
+                                Delete My Datasets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h1 class="h5 ms-4 mb-4">Delete Account</h1>
+            <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-account"
+                    data-bs-toggle="modal" data-bs-target="#confirm-delete-account">
+                <svg class="bi" width="20" height="20">
+                    <use xlink:href="#trash-fill"></use>
+                </svg>
+                Delete My Account
+            </button>
+
+
+            <div class="modal fade" id="confirm-delete-account" tabindex="-1" aria-labelledby="cda-label"
+                 aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cda-label">Are you sure?</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Do you really want to delete your account?
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" id="confirm-button-account">
+                                <svg class="bi" width="16" height="16">
+                                    <use xlink:href="#trash-fill"></use>
+                                </svg>
+                                Delete My Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>
@@ -70,6 +139,7 @@
 <script>
     const quota_url = JSON.parse('{{ url_for("main.quota") | tojson }}')
     const show_modal = JSON.parse('{{ password_updated | tojson }}')
+    const delete_data_url = JSON.parse('{{ url_for("dashboard.delete_all_datasets") | tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}

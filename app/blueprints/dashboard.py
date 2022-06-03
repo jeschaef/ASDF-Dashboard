@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, current_app, url_for, request, jsonify
+from flask import Blueprint, render_template, current_app, url_for, request, jsonify, Response
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
@@ -76,18 +76,21 @@ def delete_dataset():
     # Get selected datasets
     owner = current_user.id
     selected_names = json.loads(request.form.get('datasets'))
-    datasets = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
-
-    # Remove selected datasets from database & remove data files from disk
-    for d in datasets:
-        log.debug(f"Delete dataset {d}...")
-        db.session.delete(d)
-        db.session.commit()
-
-        delete_data(owner, d.id)
-        log.debug(f"Deleted dataset!")
-
+    selected_datasets = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
+    for d in selected_datasets:
+        delete_data(owner, d)
     return redirect(url_for('dashboard.datasets'))
+
+
+@dashboard.route('/dashboard/datasets/delete_all', methods=['POST'])
+@login_required
+def delete_all_datasets():
+    # Get all the users datasets
+    owner = current_user.id
+    all_datasets = Dataset.query.filter_by(owner=owner).all()
+    for d in all_datasets:
+        delete_data(owner, d)
+    return redirect(url_for('main.profile'))
 
 
 @dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])
