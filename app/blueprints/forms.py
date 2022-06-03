@@ -125,6 +125,7 @@ class UploadDatasetForm(RedirectForm):
 
         # Validate pandas csv parsing
         try:
+            self.dataset.data.seek(0)  # prevents EmptyDataError
             df = pd.read_csv(self.dataset.data)
         except (ParserError, EmptyDataError, IOError) as err:
             self.dataset.errors.append(f"Could not read csv-data from given file due to {type(err).__name__}!")
