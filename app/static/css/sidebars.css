@@ -16,11 +16,6 @@ main {
     margin-left: var(--sidebar-width);
 }
 
-.bi {
-    vertical-align: -.125em;
-    pointer-events: none;
-    fill: currentColor;
-}
 
 .dropdown-toggle {
     outline: 0;

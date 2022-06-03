@@ -29,6 +29,8 @@
           integrity="sha512-g2SduJKxa4Lbn3GW+Q7rNz+pKP9AWMR++Ta8fgwsZRCUsawjPvF/BxSMkGS61VsR9yinGoEgrHPGPn2mrj8+4w=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+
     {% endblock %}
 </head>
 <body>
@@ -56,6 +58,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"
         integrity="sha256-ErZ09KkZnzjpqcane4SCyyHsKAXMvID9/xwbl/Aq1pc=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/color-scheme/1.0.1/color-scheme.min.js"></script>
+
+<script src="https://github.com/FreedomRings/chartjs-plugin-doughnutlabel-v3/releases/download/v1.2.0/chartjs-plugin-doughnutlabel.min.js"></script>
 {% endblock %}
 
 </body>
