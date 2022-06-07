@@ -77,8 +77,13 @@ def delete_data(owner, dataset):
     log.debug(f"Deleted dataset!")
 
 
+def _get_user_folder(owner):
+    return os.path.join(current_app.config['UPLOAD_FOLDER'], owner)
+
+
 def _get_file_path(owner, dataset):
-    return os.path.join(current_app.config['UPLOAD_FOLDER'], owner, dataset + '.csv')
+    user_folder = _get_user_folder(owner)
+    return os.path.join(user_folder, dataset + '.csv')
 
 
 # @cache.memoize(timeout=600)

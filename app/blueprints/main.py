@@ -5,8 +5,9 @@ from flask_login import login_required, current_user
 
 from app.auth import get_hashed_password
 from app.blueprints.forms import ChangePasswordForm
-from app.blueprints.util import get_user_quota
+from app.blueprints.util import get_user_quota, delete_data
 from app.db import db
+from app.model import Dataset, User
 
 main = Blueprint('main', __name__)
 log = logging.getLogger()
@@ -50,3 +51,25 @@ def quota():
     # Get datasets of the user
     owner = current_user.id
     return get_user_quota(owner)
+
+
+@main.route('/profile/delete', methods=['POST'])
+@login_required
+def delete_account():
+    owner = current_user.id
+
+    # Delete user datasets first
+    all_datasets = Dataset.query.filter_by(owner=owner).all()
+    for d in all_datasets:
+        delete_data(owner, d)
+
+    # Delete user upload folder
+
+    # Delete user account
+    user = User.query.get(owner)
+    db.session.delete(user)
+    db.session.commit()
+    log.debug(f"Deleted user {user}")
+
+    return redirect(url_for('auth.logout'))
+

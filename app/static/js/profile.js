@@ -112,7 +112,7 @@ function updateQuotaChart(data) {
 
 
 function deleteDatasets() {
-    // Add hidden form with dataset names and submit it (redirects)
+    // Add hidden form and submit it (redirects)
     let form = $('<form action="' + delete_data_url + '" method="POST" hidden></form>');
     $('body').append(form);
     form.submit();
@@ -121,10 +121,10 @@ function deleteDatasets() {
 
 
 function deleteAccount() {
-    // First delete datasets
-    deleteDatasets()
-
-    // Now delete account
+    // Add hidden form and submit it (redirects)
+    let form = $('<form action="' + delete_account_url + '" method="POST" hidden></form>');
+    $('body').append(form);
+    form.submit();
 }
 
 

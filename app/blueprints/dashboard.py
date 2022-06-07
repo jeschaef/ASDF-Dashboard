@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
 from app.blueprints.forms import UploadDatasetForm
-from app.blueprints.util import load_data, delete_data, get_clustering_info
+from app.blueprints.util import load_data, delete_data, get_clustering_info, _get_user_folder
 from app.db import db
 from app.model import Dataset
 from app.util import ensure_exists_folder
@@ -45,7 +45,7 @@ def datasets():
         log.debug(f"Added {new_dataset} to database")
 
         # Ensure user has an upload folder already
-        user_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], owner)
+        user_folder = _get_user_folder(owner)
         ensure_exists_folder(user_folder)
 
         # Save data file in user_folder

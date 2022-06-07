@@ -140,6 +140,7 @@
     const quota_url = JSON.parse('{{ url_for("main.quota") | tojson }}')
     const show_modal = JSON.parse('{{ password_updated | tojson }}')
     const delete_data_url = JSON.parse('{{ url_for("dashboard.delete_all_datasets") | tojson }}')
+    const delete_account_url = JSON.parse('{{ url_for("main.delete_account") | tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 {% endblock %}
