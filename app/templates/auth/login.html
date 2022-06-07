@@ -5,7 +5,7 @@
 
 {% block formcontent %}
 
-{{ render_field(form.email, form.is_submitted(), class='form-floating') }}
+{{ render_field(form.email_or_username, form.is_submitted(), class='form-floating') }}
 {{ render_field(form.password, form.is_submitted(), class='form-floating') }}
 
 <div class="checkbox mb-3 ">

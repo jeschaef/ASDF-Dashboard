@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from pandas.errors import ParserError, EmptyDataError
 from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Regexp
 from wtforms_components import StringField, Email, SelectField
 
 from app.auth import verify_password
@@ -34,7 +34,7 @@ class RedirectForm(FlaskForm):
 
 
 class LoginForm(RedirectForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email_or_username = StringField('Email/Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember me?')
     submit = SubmitField('Log In')
@@ -49,12 +49,15 @@ class LoginForm(RedirectForm):
         if not initial_validation:
             return False
 
-        # Check if email (user) is known & password is correct (if user exists)
+        # Check if email/username is known & password is correct (if user exists)
         # Also stores the user to prevent second database access
-        self.user = User.query.filter_by(email=self.email.data).first()
+        self.user = User.query.filter_by(email=self.email_or_username.data).first()
+        if not self.user:  # not found by email
+            self.user = User.query.filter_by(name=self.email_or_username.data).first()
+
         if not self.user or not verify_password(self.password.data, self.user.password):
             error_msg = 'Invalid email/password'
-            self.email.errors.append(error_msg)
+            self.email_or_username.errors.append(error_msg)
             self.password.errors.append(error_msg)
             return False
 
@@ -62,7 +65,11 @@ class LoginForm(RedirectForm):
 
 
 class RegisterForm(RedirectForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH)])
+    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH),
+                                                   Regexp("^[a-zA-Z0-9_\\-\\.]+$",
+                                                          message="Only alphanumeric characters and '_', '-' or '.' "
+                                                                  "are allowed")
+                                                   ])
     email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
     password = PasswordField('Password', validators=[DataRequired(),
                                                      Length(min=MIN_PASSWORD_LENGTH, max=PASSWORD_LENGTH)])
@@ -84,6 +91,20 @@ class RegisterForm(RedirectForm):
         user = User.query.filter_by(email=field.data).first()
         if user:
             raise ValidationError("Email already registered")
+
+    def validate_password(self, field):
+        # Count lowercase, uppercase and numbers
+        lowers = uppers = digits = 0
+        for ch in field.data:
+            if ch.islower():
+                lowers += 1
+            if ch.isupper():
+                uppers += 1
+            if ch.isdigit():
+                digits += 1
+        if not (lowers and uppers and digits):
+            raise ValidationError(
+                "Password must contain at least one digit and both a lower case and an upper case letter.")
 
 
 class FileExceedsQuota:
