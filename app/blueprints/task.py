@@ -5,6 +5,7 @@ from flask_login import login_required, current_user
 from sklearn.cluster import KMeans
 
 from app.blueprints.util import load_data, get_param_dict
+from app.decorators import confirmation_required
 from app.model import Dataset
 from app.tasks import fairness_analysis, FairnessTask
 
@@ -14,6 +15,7 @@ log = logging.getLogger()
 
 @task.route('/task/fairness', methods=['POST'])
 @login_required
+@confirmation_required
 def start_fairness_task():
     # Does the user already have a running task? If so, stop it before starting another
     stopped = FairnessTask.stop(current_user)
@@ -48,6 +50,7 @@ def start_fairness_task():
 
 @task.route('/task/fairness/status')
 @login_required
+@confirmation_required
 def status():
     # Is there a current task?
     current_task_id = FairnessTask.get(current_user)

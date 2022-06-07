@@ -2,6 +2,7 @@ import logging
 import logging.config
 import os
 
+from dotenv import load_dotenv
 from flask import Flask
 
 from app.auth import login_mngr
@@ -42,7 +43,7 @@ def register_blueprints(app):
 
 
 def setup_db(app):
-    # db.drop_all(app=app)
+    db.drop_all(app=app)
     db.create_all(app=app)  # create db
     app.logger.debug("Setup db")
 
@@ -87,5 +88,6 @@ def create_app(config):
 
 
 if __name__ == '__main__':
+    load_dotenv()
     app = create_app(Config)
     app.run()

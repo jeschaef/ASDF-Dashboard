@@ -2,6 +2,7 @@ import logging
 
 import bcrypt
 from flask_login import LoginManager
+from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 
 from app.model import User
 
@@ -39,9 +40,17 @@ def verify_password(plain_text_password: str or bytes, hashed_password: bytes) -
     :param hashed_password:
     :return: True if the passwords match
     """
-    #
-
     # Encode if ordinary string
     if isinstance(plain_text_password, str):
         plain_text_password = plain_text_password.encode('utf-8')
     return bcrypt.checkpw(plain_text_password, hashed_password)
+
+
+def generate_confirmation_token(email, secret_key, salt):
+    serializer = URLSafeTimedSerializer(secret_key)
+    return serializer.dumps(email, salt=salt)
+
+
+def confirm_token(token, secret_key, salt, expiration=3600):
+    serializer = URLSafeTimedSerializer(secret_key)
+    return serializer.loads(token, salt=salt, max_age=expiration)

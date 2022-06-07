@@ -2,3 +2,4 @@
 /venv/
 /app/log/
 /app/instance/
+/.env

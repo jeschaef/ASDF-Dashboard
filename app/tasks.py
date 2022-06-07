@@ -1,9 +1,6 @@
-from abc import ABC
-
 import pandas as pd
 from celery import Task
 from celery.utils.log import get_task_logger
-from sklearn.cluster import KMeans
 
 from app.blueprints.util import choose_model
 from app.cache import cache

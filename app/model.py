@@ -19,6 +19,7 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(USER_NAME_LENGTH), unique=True, nullable=False)  # todo upper limit
     password = db.Column(db.String(PASSWORD_LENGTH))
     session_token = db.Column(db.String(UUID_LENGTH), unique=True, index=True)  # alternative user id (for session)
+    confirmed = db.Column(db.DateTime)
     datasets = db.relationship('Dataset')
 
     def __init__(self, **kwargs):

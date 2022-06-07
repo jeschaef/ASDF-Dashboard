@@ -2,13 +2,14 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, current_app, url_for, request, jsonify, Response
+from flask import Blueprint, render_template, url_for, request
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
 from app.blueprints.forms import UploadDatasetForm
 from app.blueprints.util import load_data, delete_data, get_clustering_info, _get_user_folder
 from app.db import db
+from app.decorators import confirmation_required
 from app.model import Dataset
 from app.util import ensure_exists_folder
 
@@ -18,12 +19,14 @@ log = logging.getLogger()
 
 @dashboard.route('/dashboard')
 @login_required
+@confirmation_required
 def index():
     return render_template('dashboard/index.html')
 
 
 @dashboard.route('/dashboard/datasets', methods=['GET', 'POST'])
 @login_required
+@confirmation_required
 def datasets():
     # Upload form
     owner = current_user.id
@@ -72,6 +75,7 @@ def datasets():
 
 @dashboard.route('/dashboard/datasets/delete', methods=['POST'])
 @login_required
+@confirmation_required
 def delete_dataset():
     # Get selected datasets
     owner = current_user.id
@@ -84,6 +88,7 @@ def delete_dataset():
 
 @dashboard.route('/dashboard/datasets/delete_all', methods=['POST'])
 @login_required
+@confirmation_required
 def delete_all_datasets():
     # Get all the users datasets
     owner = current_user.id
@@ -95,6 +100,7 @@ def delete_all_datasets():
 
 @dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])
 @login_required
+@confirmation_required
 def inspect():
     # Either get dataset from request via name (POST) or simply the latest uploaded (GET)
     selected_name = request.form.get('dataset')
@@ -121,6 +127,7 @@ def inspect():
 
 @dashboard.route('/dashboard/datasets/<name>')
 @login_required
+@confirmation_required
 def raw_data(name):
     # Get query parameters limit, offset, sort, order and filter TODO check for valid inputs?
     # log.debug(request.args)
@@ -162,6 +169,7 @@ def raw_data(name):
 
 @dashboard.route('/dashboard/datasets/columns')
 @login_required
+@confirmation_required
 def raw_data_columns():
     id = request.args.get('id')  # might be None
     d = Dataset.query.filter_by(owner=current_user.id, id=id).first_or_404()
@@ -172,6 +180,7 @@ def raw_data_columns():
 
 @dashboard.route('/dashboard/fairness', methods=['GET', 'POST'])
 @login_required
+@confirmation_required
 def fairness():
     # Get all the user's datasets   # TODO no datasets available
     all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.name).all()
@@ -184,5 +193,6 @@ def fairness():
 
 
 @dashboard.route('/dashboard/clustering')
+@confirmation_required
 def clustering_info():
     return get_clustering_info()

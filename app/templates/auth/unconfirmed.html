@@ -1,0 +1,18 @@
+{%- extends "base.html" %}
+
+
+{% block content %}
+<div>
+    <p>
+        You have not confirmed your account yet. Please check your email inbox or the spam folder
+        for the mail with the email confirmation link.
+    </p>
+    <p>
+        If you didn't receive the email, you can <a href="/">resend</a> it.
+    </p>
+    <button class="btn btn-lg btn-primary">
+        Resend Confirmation
+    </button>
+</div>
+
+{% endblock %}
