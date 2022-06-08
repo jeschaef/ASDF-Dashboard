@@ -1,16 +1,18 @@
 import logging
+import os
 
 from flask import Blueprint, render_template, url_for, redirect, request, json
-from flask_login import login_required, current_user
+from flask_login import login_required, current_user, logout_user
 
 from app.auth import get_hashed_password
 from app.blueprints.forms import ChangePasswordForm
-from app.blueprints.util import get_user_quota, delete_data
+from app.blueprints.util import get_user_quota, delete_data, _get_user_folder
 from app.db import db
 from app.model import Dataset, User
 
 main = Blueprint('main', __name__)
 log = logging.getLogger()
+
 
 # a simple page that says hello & sends a mail (blocked by testing)
 @main.route('/')
@@ -65,6 +67,9 @@ def delete_account():
         delete_data(owner, d)
 
     # Delete user upload folder
+    user_folder = _get_user_folder(owner)
+    if os.path.exists(user_folder):
+        os.rmdir(user_folder)
 
     # Delete user account
     user = User.query.get(owner)
@@ -72,6 +77,8 @@ def delete_account():
     db.session.commit()
     log.debug(f"Deleted user {user}")
 
-    return redirect(url_for('auth.logout', info_modal_title="Account deleted",
-                            info_modal_body="Your account was deleted"))
+    # Logout user
+    logout_user()
 
+    return redirect(url_for('main.index', info_modal_title="Account deleted",
+                            info_modal_body="Your account was deleted"))

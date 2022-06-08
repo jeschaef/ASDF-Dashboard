@@ -128,7 +128,6 @@ def inspect():
     columns = load_data(current_user.id, dataset.id).dtypes  # TODO try catch
     # log.debug(f"{type(columns)}: {columns}")
 
-    # TODO fix missing icons
     return render_template('dashboard/inspect.html', all_datasets=all_datasets, dataset=dataset, columns=columns)
 
 
@@ -185,17 +184,15 @@ def raw_data_columns():
     return columns.to_json(default_handler=str)  # default handler to fix recursion OverflowError
 
 
-@dashboard.route('/dashboard/fairness', methods=['GET', 'POST'])
+@dashboard.route('/dashboard/fairness')
 @login_required
 @confirmation_required
 def fairness():
     # Get all the user's datasets   # TODO no datasets available
     all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.name).all()
-
-    # Display progress/results of fairness analysis task on POST request
-    if request.method == 'POST':
-        pass
-
+    if len(all_datasets) <= 0:
+        return redirect(url_for('dashboard.datasets', info_modal_title="No datasets found",
+                                info_modal_body="You have to upload a dataset first."))
     return render_template('dashboard/fairness.html', all_datasets=all_datasets)
 
 
