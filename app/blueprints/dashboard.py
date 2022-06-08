@@ -2,12 +2,12 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, url_for, request
+from flask import Blueprint, render_template, url_for, request, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
 from app.blueprints.forms import UploadDatasetForm
-from app.blueprints.util import load_data, delete_data, get_clustering_info, _get_user_folder
+from app.blueprints.util import load_data, delete_data, get_clustering_info, _get_user_folder, redirect_url
 from app.db import db
 from app.decorators import confirmation_required
 from app.model import Dataset
@@ -65,7 +65,7 @@ def datasets():
             log.debug(f"Saved file '{file_path}'!")
 
         # Redirect to same page (to clear form inputs)
-        return redirect(url_for('dashboard.datasets'))
+        return redirect(redirect_url('dashboard.datasets'))
 
     # Get all the user's datasets
     dataset_list = Dataset.query.filter_by(owner=owner)
@@ -83,7 +83,7 @@ def delete_dataset():
     selected_datasets = Dataset.query.filter_by(owner=owner).filter(Dataset.name.in_(selected_names)).all()
     for d in selected_datasets:
         delete_data(owner, d)
-    return redirect(url_for('dashboard.datasets'))
+    return redirect(redirect_url('dashboard.datasets'))
 
 
 @dashboard.route('/dashboard/datasets/delete_all', methods=['POST'])
@@ -95,7 +95,7 @@ def delete_all_datasets():
     all_datasets = Dataset.query.filter_by(owner=owner).all()
     for d in all_datasets:
         delete_data(owner, d)
-    return redirect(url_for('main.profile'))
+    return redirect(redirect_url('main.profile'))
 
 
 @dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])
@@ -106,16 +106,23 @@ def inspect():
     selected_name = request.form.get('dataset')
     all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.upload_date.desc()).all()
 
+    dataset = None
     if selected_name is None:
         # Most recent uploaded (first in list)
-        dataset = all_datasets[0]
-        # TODO no dataset uploaded
+        if len(all_datasets) > 0:
+            dataset = all_datasets[0]
+        else:
+            return redirect(url_for('dashboard.datasets', info_modal_title="No datasets found",
+                                    info_modal_body="You have to upload a dataset first."))
     else:
         # Get dataset by name
         for d in all_datasets:
             if d.name == selected_name:
                 dataset = d
-        # TODO dataset name does not match any of the datasets
+        # Abort if dataset name does not match any of the datasets
+        if not dataset:
+            return redirect(url_for('dashboard.datasets', info_modal_title="Selected dataset not found",
+                                    info_modal_body=f"Couldn't find a dataset named {selected_name}."))
 
     # Load data columns+types (cached)
     columns = load_data(current_user.id, dataset.id).dtypes  # TODO try catch

@@ -1,6 +1,6 @@
 import logging
 
-from flask import Blueprint, render_template, url_for, redirect, request
+from flask import Blueprint, render_template, url_for, redirect, request, json
 from flask_login import login_required, current_user
 
 from app.auth import get_hashed_password
@@ -72,5 +72,6 @@ def delete_account():
     db.session.commit()
     log.debug(f"Deleted user {user}")
 
-    return redirect(url_for('auth.logout'))
+    return redirect(url_for('auth.logout', info_modal_title="Account deleted",
+                            info_modal_body="Your account was deleted"))
 

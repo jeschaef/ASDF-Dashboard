@@ -25,4 +25,4 @@ class Config:
     MAIL_USERNAME = getenv('MAIL_USERNAME')
     MAIL_PASSWORD = getenv('MAIL_PASSWORD')
     MAIL_USE_TLS = True
-    MAIL_BACKEND = 'smtp'
+    MAIL_BACKEND = 'console' #'smtp'

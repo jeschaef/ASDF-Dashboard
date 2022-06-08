@@ -40,6 +40,9 @@
 {% include 'navbar.html' %}
 {% endblock %}
 
+
+{% include 'modal.html' %}
+
 {% block content %} {% endblock %}
 
 <!-- Scripts -->
@@ -60,6 +63,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/color-scheme/1.0.1/color-scheme.min.js"></script>
 
 <script src="https://github.com/FreedomRings/chartjs-plugin-doughnutlabel-v3/releases/download/v1.2.0/chartjs-plugin-doughnutlabel.min.js"></script>
+<script>
+    const show_info_modal = JSON.parse('{{ request.args.get("info_modal_title") is defined | tojson }}')
+</script>
+<script src="{{ url_for('static', filename='js/base.js') }}"></script>
 {% endblock %}
 
 </body>

@@ -6,11 +6,11 @@ from flask import Blueprint, render_template, flash, redirect, url_for, current_
 from flask_login import login_user, login_required, logout_user, current_user
 from itsdangerous import SignatureExpired, BadSignature
 
-from app.db import db
 from app.auth import get_hashed_password, generate_confirmation_token, confirm_token
 from app.blueprints.forms import RegisterForm, LoginForm
 from app.blueprints.util import redirect_url
-from app.mail import mail, send_confirmation_mail
+from app.db import db
+from app.mail import send_confirmation_mail
 from app.model import User
 
 auth = Blueprint('auth', __name__)
@@ -79,7 +79,7 @@ def confirm_email(token):
     # Confirm the token (might be faulty or expired)
     email = None
     try:
-        email = confirm_token(token)
+        email = confirm_token(token, current_app.config['SECRET_KEY'], current_app.config['SALT'])
     except SignatureExpired as e:
         log.error(e)
     except BadSignature as e:
@@ -91,19 +91,36 @@ def confirm_email(token):
     # Confirm the user account
     user = User.query.filter_by(email=email).first_or_404()
     if user.confirmed:
-        flash('Account already confirmed.', 'success')      # TODO
+        info_modal_title = "Account already confirmed"
+        info_modal_body = "Your email address has already been confirmed."
     else:
         user.confirmed = datetime.datetime.now()
         db.session.commit()
-    return redirect(url_for('main.index'))
+        info_modal_title = "Confirmation successful"
+        info_modal_body = "Great! Your email address was confirmed. Now you can start using the dashboard."
+
+    return redirect(url_for('main.index', info_modal_title=info_modal_title, info_modal_body=info_modal_body))
 
 
 @auth.route('/unconfirmed')
 @login_required
 def unconfirmed():
     if current_user.confirmed:
-        return redirect('main.index')
+        return redirect(redirect_url())
     return render_template('auth/unconfirmed.html')
+
+
+@auth.route('/confirm/resend')
+@login_required
+def resend_confirmation():
+    name = current_user.name
+    email = current_user.email
+
+    # Send confirmation link via email
+    token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
+    confirmation_url = url_for('auth.confirm_email', token=token, _external=True)
+    send_confirmation_mail(name, email, confirmation_url)
+    return redirect(redirect_url('auth.unconfirmed'))
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -126,4 +143,4 @@ def login():
 def logout():
     logout_user()
     log.debug(f"Logged out user successfully")
-    return redirect(url_for('main.index'))
+    return redirect(redirect_url())

@@ -8,11 +8,11 @@
         for the mail with the email confirmation link.
     </p>
     <p>
-        If you didn't receive the email, you can <a href="/">resend</a> it.
+        If you didn't receive the email, you can <a href="{{ url_for('auth.resend_confirmation') }}">resend</a> it.
     </p>
-    <button class="btn btn-lg btn-primary">
+    <a class="btn btn-lg btn-primary" href="{{ url_for('auth.resend_confirmation') }}">
         Resend Confirmation
-    </button>
+    </a>
 </div>
 
 {% endblock %}
