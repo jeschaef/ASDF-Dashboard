@@ -43,7 +43,7 @@ def register_blueprints(app):
 
 
 def setup_db(app):
-    db.drop_all(app=app)
+    # db.drop_all(app=app)
     db.create_all(app=app)  # create db
     app.logger.debug("Setup db")
 

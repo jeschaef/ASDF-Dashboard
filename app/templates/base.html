@@ -64,7 +64,7 @@
 
 <script src="https://github.com/FreedomRings/chartjs-plugin-doughnutlabel-v3/releases/download/v1.2.0/chartjs-plugin-doughnutlabel.min.js"></script>
 <script>
-    const show_info_modal = JSON.parse('{{ request.args.get("info_modal_title") is defined | tojson }}')
+    const show_info_modal = JSON.parse('{{ request.args.get("info_modal_title") is not none | tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/base.js') }}"></script>
 {% endblock %}
