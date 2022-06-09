@@ -1,11 +1,8 @@
-const $password_modal = $('#password-changed')          // Password change modal
-const $canv_quota = $('#chart-quota')                   // Quota chart canvas
-const $delete_data = $('#confirm-button-data')          // Confirmation button delete data
-const $delete_account = $('#confirm-button-account')    // Confirmation button delete accounts
+const $del_dataset_modal = $('#confirm-delete-data')
+const $del_account_modal = $('#confirm-delete-account')
 
 // Charts
 const quota_chart = createQuotaChart()
-
 
 
 function formatBytes(bytes, decimals = 2) {
@@ -111,38 +108,18 @@ function updateQuotaChart(data) {
 }
 
 
-function deleteDatasets() {
-    // Add hidden form and submit it (redirects)
-    let form = $('<form action="' + delete_data_url + '" method="POST" hidden></form>');
-    $('body').append(form);
-    form.submit();
-}
-
-
-
-function deleteAccount() {
-    // Add hidden form and submit it (redirects)
-    let form = $('<form action="' + delete_account_url + '" method="POST" hidden></form>');
-    $('body').append(form);
-    form.submit();
-}
-
-
-
 (function () {
-    // Show modal for successful password change
-    if (show_modal) {
-        let modal = new bootstrap.Modal($password_modal.get(0), {})
-        modal.show()
-    }
-
     // Get and show quota in chart
     $.getJSON(quota_url, updateQuotaChart)
 
-    // Confirmation button delete all datasets
-    $delete_data.click(deleteDatasets)
-
-    // Confirmation button delete account
-    $delete_account.click(deleteAccount)
+    // Show modal for datasets/account deletion confirmation (invalid submit -> invalid feedback)
+    if (show_delete_dataset) {
+        let modal = new bootstrap.Modal($del_dataset_modal.get(0), {})
+        modal.show()
+    }
+    if (show_delete_account) {
+        let modal = new bootstrap.Modal($del_account_modal.get(0), {})
+        modal.show()
+    }
 
 })()

@@ -21,16 +21,21 @@ log = logging.getLogger()
 class RedirectForm(FlaskForm):
     next = HiddenField()
 
-    def __init__(self, *args, **kwargs):
-        super(RedirectForm, self).__init__(*args, **kwargs)
+    def __init__(self, was_submitted=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         if not self.next.data:
             self.next.data = get_redirect_target() or ''
+        self.was_submitted = was_submitted
 
     def redirect(self, endpoint='index', **values):
         if is_safe_url(self.next.data):
             return redirect(self.next.data)
         target = get_redirect_target()
         return redirect(target or url_for(endpoint, **values))
+
+    def is_submitted(self):
+        # to handle multiple forms on one page, add attribute was submitted to submission check
+        return self.was_submitted and super().is_submitted()
 
 
 class LoginForm(RedirectForm):
@@ -40,12 +45,12 @@ class LoginForm(RedirectForm):
     submit = SubmitField('Log In')
 
     def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user = None
 
     def validate(self, **kwargs):
         # Parent validation
-        initial_validation = super(LoginForm, self).validate()
+        initial_validation = super().validate()
         if not initial_validation:
             return False
 
@@ -64,6 +69,21 @@ class LoginForm(RedirectForm):
         return True
 
 
+def _check_password(password):
+    # Count lowercase, uppercase and numbers
+    lowers = uppers = digits = 0
+    for ch in password:
+        if ch.islower():
+            lowers += 1
+        if ch.isupper():
+            uppers += 1
+        if ch.isdigit():
+            digits += 1
+    if not (lowers and uppers and digits):
+        raise ValidationError(
+            "Password must contain at least one digit and both a lower case and an upper case letter.")
+
+
 class RegisterForm(RedirectForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=USER_NAME_LENGTH),
                                                    Regexp("^[a-zA-Z0-9_\\-\\.]+$",
@@ -78,7 +98,7 @@ class RegisterForm(RedirectForm):
     submit = SubmitField('Register')
 
     def __init__(self, *args, **kwargs):
-        super(RegisterForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def validate_username(self, field):
         # Check if username taken
@@ -93,18 +113,7 @@ class RegisterForm(RedirectForm):
             raise ValidationError("Email already registered")
 
     def validate_password(self, field):
-        # Count lowercase, uppercase and numbers
-        lowers = uppers = digits = 0
-        for ch in field.data:
-            if ch.islower():
-                lowers += 1
-            if ch.isupper():
-                uppers += 1
-            if ch.isdigit():
-                digits += 1
-        if not (lowers and uppers and digits):
-            raise ValidationError(
-                "Password must contain at least one digit and both a lower case and an upper case letter.")
+        _check_password(field.data)
 
 
 class FileExceedsQuota:
@@ -126,12 +135,12 @@ class UploadDatasetForm(RedirectForm):
     submit = SubmitField('Upload')
 
     def __init__(self, owner, *args, **kwargs):
-        super(UploadDatasetForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.owner = owner
 
     def validate(self, **kwargs):
         # Parent validation
-        initial_validation = super(UploadDatasetForm, self).validate()
+        initial_validation = super().validate()
         if not initial_validation:
             return False
 
@@ -189,7 +198,7 @@ class SelectDatasetForm(RedirectForm):
     dataset = SelectField('Select a Dataset')
 
     def __init__(self, owner, *args, **kwargs):
-        super(SelectDatasetForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.owner = owner
 
 
@@ -202,9 +211,25 @@ class ChangePasswordForm(RedirectForm):
     submit = SubmitField('Change password')
 
     def __init__(self, current_user_id, *args, **kwargs):
-        super(ChangePasswordForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.user = User.query.get(current_user_id)
 
     def validate_old_password(self, field):
+        if not verify_password(field.data, self.user.password):
+            raise ValidationError('Invalid password')
+
+    def validate_new_password(self, field):
+        _check_password(field.data)
+
+
+class PasswordConfirmationForm(RedirectForm):
+    password = PasswordField('Enter your password for confirmation', validators=[DataRequired()])
+
+    def __init__(self, current_user_id, field_id, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = User.query.get(current_user_id)
+        self.password.id = field_id
+
+    def validate_password(self, field):
         if not verify_password(field.data, self.user.password):
             raise ValidationError('Invalid password')

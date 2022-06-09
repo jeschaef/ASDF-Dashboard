@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from flask import Blueprint, render_template, url_for, request, abort
+from flask import Blueprint, render_template, url_for, request
 from flask_login import login_required, current_user
 from werkzeug.utils import redirect
 
@@ -84,18 +84,6 @@ def delete_dataset():
     for d in selected_datasets:
         delete_data(owner, d)
     return redirect(redirect_url('dashboard.datasets'))
-
-
-@dashboard.route('/dashboard/datasets/delete_all', methods=['POST'])
-@login_required
-@confirmation_required
-def delete_all_datasets():
-    # Get all the users datasets
-    owner = current_user.id
-    all_datasets = Dataset.query.filter_by(owner=owner).all()
-    for d in all_datasets:
-        delete_data(owner, d)
-    return redirect(redirect_url('main.profile'))
 
 
 @dashboard.route('/dashboard/inspect', methods=['GET', 'POST'])

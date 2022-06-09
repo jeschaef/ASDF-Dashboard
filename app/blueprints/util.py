@@ -8,7 +8,7 @@ from sklearn.cluster import *
 
 from app.cache import cache
 from app.db import db
-from app.model import Dataset
+from app.model import Dataset, User
 
 log = logging.getLogger()
 
@@ -50,7 +50,7 @@ def data_size(owner, dataset):
     return os.path.getsize(file_path)
 
 
-def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):      # TODO MAX_QUOTA
+def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):  # TODO MAX_QUOTA
     all_datasets = Dataset.query.filter_by(owner=owner).all()  # TODO no datasets uploaded yet
     quota_used = {}
     bytes_used = 0
@@ -75,6 +75,29 @@ def delete_data(owner, dataset):
     file_path = _get_file_path(owner, dataset.id)
     os.remove(file_path)
     log.debug(f"Deleted dataset!")
+
+
+def delete_all_datasets(owner):
+    # Get all the users datasets
+    all_datasets = Dataset.query.filter_by(owner=owner).all()
+    for d in all_datasets:
+        delete_data(owner, d)
+    log.debug(f"Deleted all datasets")
+
+
+def delete_user_account(user):
+    # Delete user datasets first
+    delete_all_datasets(user.id)
+
+    # Delete user upload folder
+    user_folder = _get_user_folder(user.id)
+    if os.path.exists(user_folder):
+        os.rmdir(user_folder)
+
+    # Delete user account
+    db.session.delete(user)
+    db.session.commit()
+    log.debug(f"Deleted account {user}")
 
 
 def _get_user_folder(owner):

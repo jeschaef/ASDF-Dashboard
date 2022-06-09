@@ -1,14 +1,12 @@
 import logging
-import os
 
-from flask import Blueprint, render_template, url_for, redirect, request, json
-from flask_login import login_required, current_user, logout_user
+from flask import Blueprint, render_template, url_for, redirect
+from flask_login import login_required, current_user
 
 from app.auth import get_hashed_password
-from app.blueprints.forms import ChangePasswordForm
-from app.blueprints.util import get_user_quota, delete_data, _get_user_folder
+from app.blueprints.forms import ChangePasswordForm, PasswordConfirmationForm
+from app.blueprints.util import get_user_quota, delete_all_datasets, delete_user_account
 from app.db import db
-from app.model import Dataset, User
 
 main = Blueprint('main', __name__)
 log = logging.getLogger()
@@ -25,11 +23,22 @@ def test():
     return render_template('mail/confirmation.html')
 
 
-@main.route('/profile', methods=['GET', 'POST'])
+@main.route('/profile')
 @login_required
 def profile():
     form = ChangePasswordForm(current_user.id)
-    password_updated = request.args.get("password_updated")
+    con_form_dataset = PasswordConfirmationForm(current_user.id, 'password_dataset')
+    con_form_account = PasswordConfirmationForm(current_user.id, 'password_account')
+    return render_template('profile.html', form=form, con_form_dataset=con_form_dataset,
+                           con_form_account=con_form_account)
+
+
+@main.route('/profile/change_password', methods=['POST'])
+@login_required
+def change_password():
+    form = ChangePasswordForm(current_user.id)
+    con_form_dataset = PasswordConfirmationForm(current_user.id, 'password_dataset', was_submitted=False)
+    con_form_account = PasswordConfirmationForm(current_user.id, 'password_account', was_submitted=False)
 
     if form.validate_on_submit():
         # set new password
@@ -38,14 +47,45 @@ def profile():
         db.session.commit()
 
         # redirect to profile page with modal for successful password update
-        return redirect(url_for('main.profile', password_updated=True))
+        return redirect(url_for('main.profile', info_modal_title="Password changed",
+                                info_modal_body="Your password has successfully been updated!"))
 
-    elif form.is_submitted():
-        # invalid form was submitted but if the password was updated successfully
-        # directly before this, the modal would show again
-        password_updated = False
+    return render_template('profile.html', form=form, con_form_dataset=con_form_dataset,
+                           con_form_account=con_form_account)
 
-    return render_template('profile.html', form=form, password_updated=password_updated)
+
+@main.route('/profile/delete_datasets', methods=['POST'])
+@login_required
+def delete_datasets():
+    form = ChangePasswordForm(current_user.id, was_submitted=False)
+    con_form_dataset = PasswordConfirmationForm(current_user.id, 'password_dataset')
+    con_form_account = PasswordConfirmationForm(current_user.id, 'password_account', was_submitted=False)
+
+    # Delete all datasets password confirmation
+    if con_form_dataset.validate_on_submit():
+        delete_all_datasets(current_user.id)
+        return redirect(url_for('main.profile', info_modal_title="Deleted All Datasets",
+                                info_modal_body="Your datasets were deleted."))
+
+    return render_template('profile.html', form=form, con_form_dataset=con_form_dataset,
+                           con_form_account=con_form_account)
+
+
+@main.route('/profile/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    form = ChangePasswordForm(current_user.id, was_submitted=False)
+    con_form_dataset = PasswordConfirmationForm(current_user.id, 'password_dataset', was_submitted=False)
+    con_form_account = PasswordConfirmationForm(current_user.id, 'password_account')
+
+    # Delete account password confirmation
+    if con_form_account.validate_on_submit():
+        delete_user_account(current_user)
+        return redirect(url_for('main.index', info_modal_title="Account deleted",
+                                info_modal_body="Your account has been deleted."))
+
+    return render_template('profile.html', form=form, con_form_dataset=con_form_dataset,
+                           con_form_account=con_form_account)
 
 
 @main.route('/profile/quota')
@@ -54,31 +94,3 @@ def quota():
     # Get datasets of the user
     owner = current_user.id
     return get_user_quota(owner)
-
-
-@main.route('/profile/delete', methods=['POST'])
-@login_required
-def delete_account():
-    owner = current_user.id
-
-    # Delete user datasets first
-    all_datasets = Dataset.query.filter_by(owner=owner).all()
-    for d in all_datasets:
-        delete_data(owner, d)
-
-    # Delete user upload folder
-    user_folder = _get_user_folder(owner)
-    if os.path.exists(user_folder):
-        os.rmdir(user_folder)
-
-    # Delete user account
-    user = User.query.get(owner)
-    db.session.delete(user)
-    db.session.commit()
-    log.debug(f"Deleted user {user}")
-
-    # Logout user
-    logout_user()
-
-    return redirect(url_for('main.index', info_modal_title="Account deleted",
-                            info_modal_body="Your account was deleted"))
