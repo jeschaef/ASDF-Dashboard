@@ -11,7 +11,7 @@ from app.blueprints.dashboard import dashboard as dashboard_blueprint
 from app.blueprints.main import main as main_blueprint
 from app.blueprints.task import task as task_blueprint
 from app.cache import cache
-from app.config import Config
+from app.config import ProductionConfig, DevConfig
 from app.db import db
 from app.mail import mail
 from app.util import ensure_exists_folder
@@ -23,7 +23,6 @@ def setup_logging(app_root):
     ensure_exists_folder(os.path.join(app_root, "log"))
     log_conf_path = os.path.join(app_root, "conf", "logging.conf")
     log_file_path = os.path.join(app_root, "log", "demo.log")
-    print(log_conf_path, os.path.exists(log_conf_path))
 
     logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path}, disable_existing_loggers=False)
 
@@ -49,23 +48,28 @@ def setup_db(app):
     app.logger.debug("Setup db")
 
 
-def create_app():
+def create_app(configuration=ProductionConfig()):
     load_dotenv()
     app_root = os.path.dirname(os.path.realpath(__file__))  # App root folder
 
     # Configure logging
     setup_logging(app_root)
-    # print("Loggers", logging.getLogger().handlers)
-    # log.debug('Configured logging')
 
     # filenames for loading the config are assumed to be relative to the instance path
     # instead of the application root
-    app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(Config)
-    app.config.update(
-        SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
-        UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
-    )
+    app = Flask(__name__)
+    app.config.from_object(configuration)
+    if isinstance(configuration, DevConfig):
+        app.config.update(
+            SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
+            UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
+        )
+    elif isinstance(configuration, ProductionConfig):
+        app.config.update(
+            SQLALCHEMY_DATABASE_URI=f'postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}'
+                                    f'@postgres:5432/{os.getenv("POSTGRES_DB")}',
+            UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
+        )
 
     # ensure instance/upload folders exists
     ensure_exists_folder(app.instance_path)
@@ -93,5 +97,5 @@ def create_app():
 
 
 if __name__ == '__main__':
-    app = create_app()
+    app = create_app(configuration=DevConfig())
     app.run()

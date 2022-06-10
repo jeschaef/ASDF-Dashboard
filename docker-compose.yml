@@ -15,11 +15,14 @@ services:
         - "FLASK_ENV=${FLASK_ENV:-production}"
     depends_on:
       - "redis"
+      - "postgres"
     env_file:
       - ".env"
-    environment:
+    environment:    # overwrites .env
       - CACHE_REDIS_HOST=redis
       - CACHE_REDIS_PORT=6379
+      - broker_url=redis://redis:6379
+      - result_backend=redis://redis:6379
     ports:
       - "${DOCKER_WEB_PORT:-127.0.0.1:8000}:8000"
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
@@ -44,6 +47,12 @@ services:
     stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
     volumes:
       - "${DOCKER_WEB_VOLUME:-./public:/app/public}"
+
+  postgres:
+    image: "postgres:14.3"
+    env_file:
+      - ".env"
+
 
 volumes:
   redis: { }
