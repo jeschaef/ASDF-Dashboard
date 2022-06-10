@@ -19,12 +19,13 @@ from app.util import ensure_exists_folder
 from app.celery_app import celery_app
 
 
-def setup_logging(app, app_root):
+def setup_logging(app_root):
+    ensure_exists_folder(os.path.join(app_root, "log"))
     log_conf_path = os.path.join(app_root, "conf", "logging.conf")
     log_file_path = os.path.join(app_root, "log", "demo.log")
+    print(log_conf_path, os.path.exists(log_conf_path))
 
-    logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path})
-    return app.logger
+    logging.config.fileConfig(log_conf_path, defaults={'logfilename': log_file_path}, disable_existing_loggers=False)
 
 
 def register_extensions(app):
@@ -48,28 +49,31 @@ def setup_db(app):
     app.logger.debug("Setup db")
 
 
-def create_app(config):
+def create_app():
+    load_dotenv()
+    app_root = os.path.dirname(os.path.realpath(__file__))  # App root folder
+
+    # Configure logging
+    setup_logging(app_root)
+    # print("Loggers", logging.getLogger().handlers)
+    # log.debug('Configured logging')
+
     # filenames for loading the config are assumed to be relative to the instance path
     # instead of the application root
     app = Flask(__name__, instance_relative_config=True)
-    app.config.from_object(config)
+    app.config.from_object(Config)
     app.config.update(
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'test.sqlite'),
         UPLOAD_FOLDER=os.path.join(app.instance_path, 'upload'),
     )
-    app_root = os.path.dirname(app.instance_path)  # App root folder
 
-    # ensure log/instance/upload folders exists
-    ensure_exists_folder(os.path.join(app_root, "log"))
+    # ensure instance/upload folders exists
     ensure_exists_folder(app.instance_path)
     ensure_exists_folder(app.config['UPLOAD_FOLDER'])
 
-    # Configure logging
-    log = setup_logging(app, app_root)
-    log.debug('Configured logging')
-
     # Debug mode
     app.debug = True
+    log = app.logger
 
     # Register extensions, blueprints
     register_extensions(app)
@@ -83,11 +87,11 @@ def create_app(config):
 
     # Celery
     celery_app.conf.update(app.config)
+    log.debug('Created app')
 
     return app
 
 
 if __name__ == '__main__':
-    load_dotenv()
-    app = create_app(Config)
+    app = create_app()
     app.run()

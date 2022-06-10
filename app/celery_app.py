@@ -1,10 +1,14 @@
+import os
+
 from celery import Celery
-from app.config import Config
+from dotenv import load_dotenv
 
-celery_app = Celery('__init__')
+load_dotenv()
+celery_app = Celery('__init__',
+                    broker=os.getenv("broker_url", "redis://localhost:6379"),       # specified in docker-compose
+                    backend=os.getenv("result_backend", "redis://localhost:6379"))
 
-# Optional configuration, see the application user guide.
-celery_app.config_from_object(Config, namespace="CELERY")
+# Optional configuration
 celery_app.conf.update(
     result_expires=3600,
 )

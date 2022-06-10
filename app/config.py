@@ -4,17 +4,17 @@ from os import getenv
 class Config:
     SECRET_KEY = 'dev'  # TODO setup appropriate secret & salt
     SALT = 'pepper'
-    # DATABASE=os.path.join(app.instance_path, 'app.sqlite')
-
-    # Celery
-    CELERY_BROKER_URL = 'redis://localhost:6379'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+    # SERVER_NAME = '0.0.0.0'
 
     # SQLAlchemy
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # Caching (may be overwritten by docker-compose file)
+    CACHE_REDIS_HOST = getenv('CACHE_REDIS_HOST', 'localhost')
+    CACHE_REDIS_PORT = getenv('CACHE_REDIS_PORT', 6379)
+
     # Testing
-    TESTING = True
+    # TESTING = True
 
     # Upload
     ALLOWED_EXTENSIONS = {'csv'}

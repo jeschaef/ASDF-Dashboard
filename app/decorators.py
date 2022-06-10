@@ -10,7 +10,6 @@ log = logging.getLogger()
 def confirmation_required(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        log.debug(f"{current_user} is confirmed? {current_user.confirmed}")
         if not current_user.confirmed:
             return redirect(url_for('auth.unconfirmed'))
         return func(*args, **kwargs)

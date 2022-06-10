@@ -1,0 +1,49 @@
+services:
+  redis:
+    env_file:
+      - ".env"
+    image: "redis:latest"
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+    volumes:
+      - "redis:/data"
+
+  web:
+    build:
+      context: "."
+      args:
+        - "FLASK_ENV=${FLASK_ENV:-production}"
+    depends_on:
+      - "redis"
+    env_file:
+      - ".env"
+    environment:
+      - CACHE_REDIS_HOST=redis
+      - CACHE_REDIS_PORT=6379
+    ports:
+      - "${DOCKER_WEB_PORT:-127.0.0.1:8000}:8000"
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+    volumes:
+      - "${DOCKER_WEB_VOLUME:-./public:/app/public}"
+
+  worker:
+    build:
+      context: "."
+      args:
+        - "FLASK_ENV=${FLASK_ENV:-production}"
+    command: celery -A app.celery_app worker -P solo -l info
+    depends_on:
+      - "redis"
+    env_file:
+      - ".env"
+    environment:    # overwrites .env file
+      - broker_url=redis://redis:6379
+      - result_backend=redis://redis:6379
+    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+    volumes:
+      - "${DOCKER_WEB_VOLUME:-./public:/app/public}"
+
+volumes:
+  redis: { }
