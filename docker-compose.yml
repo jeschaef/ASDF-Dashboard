@@ -3,8 +3,8 @@ services:
     env_file:
       - ".env"
     image: "redis:latest"
-    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+    restart: "${DOCKER_RESTART_POLICY}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD}"
     volumes:
       - "redis:/data"
 
@@ -12,7 +12,7 @@ services:
     build:
       context: "."
       args:
-        - "FLASK_ENV=${FLASK_ENV:-production}"
+        - "FLASK_ENV=${FLASK_ENV}"
     depends_on:
       - "redis"
       - "postgres"
@@ -24,17 +24,17 @@ services:
       - broker_url=redis://redis:6379
       - result_backend=redis://redis:6379
     ports:
-      - "${DOCKER_WEB_PORT:-127.0.0.1:8000}:8000"
-    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+      - "${DOCKER_WEB_PORT}:8000"
+    restart: "${DOCKER_RESTART_POLICY}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD}"
     volumes:
-      - "${DOCKER_WEB_VOLUME:-./public:/app/public}"
+      - "${DOCKER_WEB_VOLUME}"
 
   worker:
     build:
       context: "."
       args:
-        - "FLASK_ENV=${FLASK_ENV:-production}"
+        - "FLASK_ENV=${FLASK_ENV}"
     command: celery -A app.celery_app worker -P solo -l info
     depends_on:
       - "redis"
@@ -43,13 +43,13 @@ services:
     environment:    # overwrites .env file
       - broker_url=redis://redis:6379
       - result_backend=redis://redis:6379
-    restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
-    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD:-3s}"
+    restart: "${DOCKER_RESTART_POLICY}"
+    stop_grace_period: "${DOCKER_STOP_GRACE_PERIOD}"
     volumes:
-      - "${DOCKER_WEB_VOLUME:-./public:/app/public}"
+      - "${DOCKER_WEB_VOLUME}"
 
   postgres:
-    image: "postgres:14.3"
+    image: "postgres:latest"
     env_file:
       - ".env"
 

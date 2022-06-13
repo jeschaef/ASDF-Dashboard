@@ -10,6 +10,41 @@ Start celery worker on Windows (from project root):
 
 `celery -A app.celery_app worker -P solo -l info`
 
+## Create .env file
+
+Create a `.env` file in the project's [root folder]() with the following variables and replace the `<placeholders>` 
+with actual values ([template]()).
+```
+# Mail
+MAIL_SERVER=<url_smtp_server>
+MAIL_PORT=<port_smtp_server>
+MAIL_USERNAME=<user_smtp_server>
+MAIL_PASSWORD=<password_smtp_server>
+MAIL_USE_TLS=<flag_tls_smtp_server(True/False)>
+
+# General
+COMPOSE_PROJECT_NAME=FairnessFrontend
+
+# Docker
+DOCKER_RESTART_POLICY=unless-stopped
+DOCKER_STOP_GRACE_PERIOD=3s
+DOCKER_WEB_PORT=8000
+DOCKER_WEB_VOLUME=./public:/app/public
+
+# Flask
+FLASK_ENV=production
+
+# Gunicorn
+WEB_RELOAD=<flag_web_reload(true/false)>
+WEB_CONCURRENCY=<number_of_workers>
+
+# Postgres
+POSTGRES_DB=<db_postgres>
+POSTGRES_USER=<user_postgres>
+POSTGRES_PASSWORD=<password_postgres>
+```
+
+
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
