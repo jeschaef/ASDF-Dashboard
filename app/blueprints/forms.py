@@ -56,16 +56,17 @@ class LoginForm(RedirectForm):
 
         # Check if email/username is known & password is correct (if user exists)
         # Also stores the user to prevent second database access
-        self.user = User.query.filter_by(email=self.email_or_username.data).first()
-        if not self.user:  # not found by email
-            self.user = User.query.filter_by(name=self.email_or_username.data).first()
+        user = User.query.filter_by(email=self.email_or_username.data).first()
+        if not user:  # not found by email
+            user = User.query.filter_by(name=self.email_or_username.data).first()
 
-        if not self.user or not verify_password(self.password.data, self.user.password):
+        if not user or not verify_password(self.password.data, user.password):
             error_msg = 'Invalid email/password'
             self.email_or_username.errors.append(error_msg)
             self.password.errors.append(error_msg)
             return False
 
+        self.user = user
         return True
 
 
@@ -212,10 +213,11 @@ class ChangePasswordForm(RedirectForm):
 
     def __init__(self, current_user_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = User.query.get(current_user_id)
+        self.owner = current_user_id
 
     def validate_old_password(self, field):
-        if not verify_password(field.data, self.user.password):
+        user = User.query.get(self.owner)
+        if not verify_password(field.data, user.password):
             raise ValidationError('Invalid password')
 
     def validate_new_password(self, field):
@@ -227,9 +229,10 @@ class PasswordConfirmationForm(RedirectForm):
 
     def __init__(self, current_user_id, field_id, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.user = User.query.get(current_user_id)
+        self.owner = current_user_id
         self.password.id = field_id
 
     def validate_password(self, field):
-        if not verify_password(field.data, self.user.password):
+        user = User.query.get(self.owner)
+        if not verify_password(field.data, user.password):
             raise ValidationError('Invalid password')

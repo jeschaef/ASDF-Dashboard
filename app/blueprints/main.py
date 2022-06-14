@@ -42,8 +42,7 @@ def change_password():
 
     if form.validate_on_submit():
         # set new password
-        user = form.user
-        user.password = get_hashed_password(form.new_password.data)
+        current_user.password = get_hashed_password(form.new_password.data)
         db.session.commit()
 
         # redirect to profile page with modal for successful password update

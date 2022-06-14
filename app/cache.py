@@ -1,6 +1,6 @@
 from flask_caching import Cache
 
-from app.config import ProductionConfig
+from app.conf.config import ProductionConfig
 
 cache = Cache(config={
     'CACHE_TYPE': 'RedisCache',

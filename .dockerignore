@@ -2,3 +2,4 @@
 .git
 .gitignore
 instance/
+!app/conf/nginx/nginx.conf

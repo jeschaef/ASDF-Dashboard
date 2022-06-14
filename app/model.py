@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.String(UUID_LENGTH), primary_key=True)
     email = db.Column(db.String(EMAIL_LENGTH), unique=True, nullable=False)
     name = db.Column(db.String(USER_NAME_LENGTH), unique=True, nullable=False)  # todo upper limit
-    password = db.Column(db.String())       # length limited by password input field
+    password = db.Column(db.LargeBinary)       # length limited by password input field
     session_token = db.Column(db.String(UUID_LENGTH), unique=True, index=True)  # alternative user id (for session)
     confirmed = db.Column(db.DateTime)
     datasets = db.relationship('Dataset')

@@ -1,7 +1,5 @@
 FROM python:3.8.13-slim-buster
 
-MAINTAINER Jero Schaefer "jeschaef@cs.uni-frankfurt.de"
-
 WORKDIR /app
 
 COPY ./requirements.txt requirements.txt

@@ -17,16 +17,6 @@ auth = Blueprint('auth', __name__)
 log = logging.getLogger()
 
 
-def flash_errors(form):
-    """Flashes form errors"""
-    for field, errors in form.errors.items():
-        for error in errors:
-            flash(u"Error in the %s field - %s" % (
-                getattr(form, field).label.text,
-                error
-            ), 'error')
-
-
 def perform_login(user, remember=False):
     # Create & store new session token
     user.session_token = uuid.uuid4().hex
@@ -118,7 +108,7 @@ def resend_confirmation():
 
     # Send confirmation link via email
     token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
-    confirmation_url = url_for('auth.confirm_email', token=token, _external=True)
+    confirmation_url = url_for('auth.confirm_email', token=token)
     send_confirmation_mail(name, email, confirmation_url)
     return redirect(redirect_url('auth.unconfirmed'))
 

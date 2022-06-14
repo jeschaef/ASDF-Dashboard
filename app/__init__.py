@@ -1,9 +1,11 @@
 import logging
 import logging.config
 import os
+from distutils.util import strtobool
 
 from dotenv import load_dotenv
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.auth import login_mngr
 from app.blueprints.auth import auth as auth_blueprint
@@ -11,7 +13,7 @@ from app.blueprints.dashboard import dashboard as dashboard_blueprint
 from app.blueprints.main import main as main_blueprint
 from app.blueprints.task import task as task_blueprint
 from app.cache import cache
-from app.config import ProductionConfig, DevConfig
+from app.conf.config import ProductionConfig, DevConfig
 from app.db import db
 from app.mail import mail
 from app.util import ensure_exists_folder
@@ -43,7 +45,8 @@ def register_blueprints(app):
 
 
 def setup_db(app):
-    # db.drop_all(app=app)
+    if bool(strtobool(os.getenv("DATABASE_DROP_ALL", 'false'))):
+        db.drop_all(app=app)
     db.create_all(app=app)  # create db
     app.logger.debug("Setup db")
 
@@ -55,9 +58,14 @@ def create_app(configuration=ProductionConfig()):
     # Configure logging
     setup_logging(app_root)
 
-    # filenames for loading the config are assumed to be relative to the instance path
-    # instead of the application root
+    # Flask
     app = Flask(__name__)
+
+    # ProxyFix
+    if isinstance(configuration, ProductionConfig):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1, x_port=1)
+
+    # Config
     app.config.from_object(configuration)
     if isinstance(configuration, DevConfig):
         app.config.update(

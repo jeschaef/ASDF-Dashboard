@@ -5,6 +5,7 @@ class BaseConfig:
     DEBUG = False
     SECRET_KEY = 'dev'  # TODO setup appropriate secret & salt
     SALT = 'pepper'
+    # SERVER_NAME = getenv('SERVER_NAME', '127.0.0.1:5000')
 
     # Upload
     ALLOWED_EXTENSIONS = {'csv'}
@@ -33,9 +34,4 @@ class DevConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     FLASK_ENV = 'production'
     MAIL_BACKEND = 'smtp'
-
-
-
-
-
 
