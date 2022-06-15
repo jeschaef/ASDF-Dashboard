@@ -2,20 +2,25 @@
 
 {% block inner_content %}
 <div class="border rounded shadow p-2">
-    <h1 class="h2">Index</h1>
+    <h1 class="h1">ASDF-Dashboard</h1>
 
-    <div class="pt-5">
-        This dashboard helps you to analyze the fairness of your classifier on a dataset.
+    <div class="pt-5 fs-6">
+        This dashboard helps you to analyze the fairness of your classifiers on datasets.
+        The fairness is assessed using common fairness criteria (e.g., statistical parity) and the results are
+        visualized in different interactive charts allowing for exploration and understanding of your classifier's
+        behavior.
     </div>
 
-    <div class="pt-5">
-        <h1 class="h2">Upload your dataset</h1>
-        <a href="{{ url_for('dashboard.datasets') }}">Upload</a> a new dataset with class labels
-        predicted by your classifier.
+    <h1 class="h2 pt-5">Upload your dataset</h1>
+    <div class="pt-3 fs-6">
+        <a href="{{ url_for('dashboard.datasets') }}">Upload</a> a new dataset (in csv-format) with class labels
+        predicted by your classifier.<br/>
+        Note: The uploaded dataset has to contain one column with the ground-truth class labels as well as one column for
+        the predicted class labels (classification)
     </div>
 
-    <div class="pt-5">
-        <h1 class="h2">Subgroup fairness evaluation</h1>
+    <h1 class="h2 pt-5">Subgroup fairness evaluation</h1>
+    <div class="pt-3 fs-6">
         For your uploaded datasets and classification results you can perform a <a
             href="{{ url_for('dashboard.fairness') }}">subgroup fairness assessment</a>
         using an automated process.

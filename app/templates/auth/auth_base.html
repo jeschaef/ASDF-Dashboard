@@ -5,25 +5,25 @@
 
 <!-- Styles -->
 {% block styles %}
-    {{ super() }}
+{{ super() }}
 
-     <style>
-      .bd-placeholder-img {
+<style>
+    .bd-placeholder-img {
         font-size: 1.125rem;
         text-anchor: middle;
         -webkit-user-select: none;
         -moz-user-select: none;
         user-select: none;
-      }
+    }
 
-      @media (min-width: 768px) {
+    @media (min-width: 768px) {
         .bd-placeholder-img-lg {
-          font-size: 3.5rem;
+            font-size: 3.5rem;
         }
-      }
-    </style>
+    }
+</style>
 
-    <link href="{{ url_for('static', filename='css/auth.css') }}" rel="stylesheet" media="screen">
+<link href="{{ url_for('static', filename='css/auth.css') }}" rel="stylesheet" media="screen">
 {% endblock %}
 
 
@@ -38,22 +38,23 @@
     <form method="POST">
         {{ form.csrf_token() }}
 
-<!--        {% for field, errors in form.errors.items() %}-->
-<!--            <div class="alert alert-error alert-dismissible fade show" role="alert">-->
-<!--                {{ form[field].label }}: {{ ', '.join(errors) }}-->
-<!--                <button type="button" class="close" data-dismiss="alert" aria-label="Close">-->
-<!--                    <span aria-hidden="true">&times;</span>-->
-<!--                </button>-->
-<!--            </div>-->
-<!--        {% endfor %}-->
+        <div class="row mb-4">
+            <div class="col col-3">
+                <a href="{{ url_for('main.index') }}">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="" width="72" height="72">
+                </a>
+            </div>
+            <div class="col col-9 d-flex fs-4">
+                <div class="mt-auto mb-auto">
+                    <a href="{{ url_for('main.index') }}" class="text-decoration-none link-dark">ASDF-Dashboard</a>
+                </div>
+            </div>
+        </div>
 
-        <img class="mb-4" src="" alt="" width="72" height="57">
         <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
         {% block formcontent %}
         {% endblock %}
-
-<!--        <p class="mt-5 mb-3 text-muted">&copy; 2022</p>-->
     </form>
 </div>
 

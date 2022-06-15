@@ -1,12 +1,37 @@
 {%- extends "base.html" %}
 
+{% block styles %}
+{{ super() }}
+<link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet"/>
+{% endblock %}
+
 {% block title %}Main{% endblock %}
 
 {% block content %}
-<h1>Index</h1>
+<div class="p-3">
 
-{% if current_user.is_authenticated %}
+    <div class="d-flex rounded p-3" style="background: #4ec55c; height: 300px">
+        <h1 class="h1 mt-auto">ASDF-Dashboard</h1>
+        <h1 class="h3"></h1>
+    </div>
+
+    {% if current_user.is_authenticated %}
     <p>Hello {{ current_user.name }}!</p>
-{% endif %}
+    {% else %}
+    <p>login</p>
+    {% endif %}
 
+
+</div>
+
+<footer class="footer bg-light d-flex align-items-center justify-content-center">
+    <div class="">
+        This web service is offered by the <a href="dbda.cs.uni-frankfurt.de">Database Technologies and Data Analytics Group</a> (Institute
+        of Computer Science, Goethe University Frankfurt)
+    </div>
+</footer>
 {% endblock %}
+
+
+
+

@@ -3,123 +3,142 @@
 <!-- Import form rendering macro -->
 {% from '_formhelpers.html' import render_field %}
 
+{% block styles %}
+{{ super() }}
+<style>
+    .column {
+        height: 100%;
+    }
+</style>
+{% endblock %}
+
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<h1 class="h1">Profile of {{ current_user.name }}</h1>
+<div class="p-3">
+    <h1 class="h1">Hello {{ current_user.name }}</h1>
 
-{% if current_user.is_authenticated %}
-<p>Hello {{ current_user.name }}!</p>
-{% endif %}
+    <div class="row mt-3 gx-3 gy-3">
 
-<div class="row p-2 gx-5 gy-3">
+        <!-- Change password form + successful change modal -->
+        <div class="col col-4">
+            <div class="border rounded shadow p-2 column">
+                <form method="POST" id="password-change-form"
+                      action="{{ url_for('main.change_password') }}">
+                    <h1 class="h5 ms-4 mb-4">Change password</h1>
 
-    <!-- Change password form + successful change modal -->
-    <form method="POST" id="password-change-form" class="col col-4"
-        action="{{ url_for('main.change_password') }}">
-        <h1 class="h5 ms-4 mb-4">Change password</h1>
-
-        {{ form.csrf_token() }}
-        <div class="row p-2 g-3 d-flex ">
-            {{ render_field(form.old_password, form.is_submitted(), class='form-floating') }}
-            {{ render_field(form.new_password, form.is_submitted(), class='form-floating') }}
-            {{ render_field(form.confirm, form.is_submitted(), class='form-floating') }}
-            {{ form.submit(class="w-50 form-floating btn btn-lg btn-primary ms-auto me-auto")}}
+                    {{ form.csrf_token() }}
+                    <div class="row p-2 g-3 d-flex ">
+                        {{ render_field(form.old_password, form.is_submitted(), class='form-floating') }}
+                        {{ render_field(form.new_password, form.is_submitted(), class='form-floating') }}
+                        {{ render_field(form.confirm, form.is_submitted(), class='form-floating') }}
+                        {{ form.submit(class="w-50 form-floating btn btn-lg btn-primary ms-auto me-auto")}}
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
 
-    <!-- Quota -->
-    <div class="col col-4">
-        <h1 class="h5 ms-4 mb-4">Quota</h1>
-        <canvas id="chart-quota"></canvas>
-    </div>
+        <!-- Quota -->
+        <div class="col col-4">
+            <div class="border rounded shadow p-2 column">
+                <h1 class="h5 ms-4 mb-4">Quota</h1>
+                <canvas id="chart-quota"></canvas>
+            </div>
+        </div>
 
-    <!-- Delete all uploaded datasets -->
-    <div class="col col-4">
-        <div class="row p-2 g-4 d-flex ">
-            <h1 class="h5 ms-4 mb-4">Delete All My Uploaded Datasets</h1>
-            <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-datasets"
-                    data-bs-toggle="modal" data-bs-target="#confirm-delete-data">
-                <svg class="bi" width="20" height="20">
-                    <use xlink:href="#trash-fill"></use>
-                </svg>
-                Delete My Datasets
-            </button>
+        <!-- Delete all uploaded datasets -->
+        <div class="col col-4">
+            <div class="border rounded shadow p-2 column">
+                <div class="row p-2 g-4 d-flex">
+                    <h1 class="h5 ms-4 mb-4">Delete All My Uploaded Datasets</h1>
+                    <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-datasets"
+                            data-bs-toggle="modal" data-bs-target="#confirm-delete-data">
+                        <svg class="bi" width="20" height="20">
+                            <use xlink:href="#trash-fill"></use>
+                        </svg>
+                        Delete My Datasets
+                    </button>
 
 
-            <div class="modal fade" id="confirm-delete-data" tabindex="-1" aria-labelledby="cdd-label"
-                 aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="cdd-label">Are you sure?</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>
-                                Do you really want to delete your uploaded datasets?
-                            </p>
-                            <form method="POST" id="form-del-datasets"
-                                  action="{{ url_for('main.delete_datasets') }}">
-                                {{ con_form_dataset.csrf_token() }}
-                                <div class="form-floating w-75 ms-auto me-auto">
-                                    {{ render_field(con_form_dataset.password, con_form_dataset.is_submitted(),
-                                    class='form-floating') }}
+                    <div class="modal fade" id="confirm-delete-data" tabindex="-1" aria-labelledby="cdd-label"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cdd-label">Are you sure?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger" form="form-del-datasets">
-                                <svg class="bi" width="16" height="16">
-                                    <use xlink:href="#trash-fill"></use>
-                                </svg>
-                                Delete My Datasets
-                            </button>
+                                <div class="modal-body">
+                                    <p>
+                                        Do you really want to delete your uploaded datasets?
+                                    </p>
+                                    <form method="POST" id="form-del-datasets"
+                                          action="{{ url_for('main.delete_datasets') }}">
+                                        {{ con_form_dataset.csrf_token() }}
+                                        <div class="form-floating w-75 ms-auto me-auto">
+                                            {{ render_field(con_form_dataset.password, con_form_dataset.is_submitted(),
+                                            class='form-floating') }}
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-danger" form="form-del-datasets">
+                                        <svg class="bi" width="16" height="16">
+                                            <use xlink:href="#trash-fill"></use>
+                                        </svg>
+                                        Delete My Datasets
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <h1 class="h5 ms-4 mb-4">Delete Account</h1>
-            <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-account"
-                    data-bs-toggle="modal" data-bs-target="#confirm-delete-account">
-                <svg class="bi" width="20" height="20">
-                    <use xlink:href="#trash-fill"></use>
-                </svg>
-                Delete My Account
-            </button>
+                    <h1 class="h5 ms-4 mb-4">Delete Account</h1>
+                    <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-account"
+                            data-bs-toggle="modal" data-bs-target="#confirm-delete-account">
+                        <svg class="bi" width="20" height="20">
+                            <use xlink:href="#trash-fill"></use>
+                        </svg>
+                        Delete My Account
+                    </button>
 
 
-            <div class="modal fade" id="confirm-delete-account" tabindex="-1" aria-labelledby="cda-label"
-                 aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="cda-label">Are you sure?</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>
-                                Do you really want to delete your account?
-                            </p>
-                            <form method="POST" id="form-del-account"
-                                  action="{{ url_for('main.delete_account') }}">
-                                {{ con_form_account.csrf_token() }}
-                                <div class="form-floating w-75 ms-auto me-auto">
-                                    {{ render_field(con_form_account.password, con_form_account.is_submitted(),
-                                    class='form-floating') }}
+                    <div class="modal fade" id="confirm-delete-account" tabindex="-1" aria-labelledby="cda-label"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="cda-label">Are you sure?</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
                                 </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger" form="form-del-account">
-                                <svg class="bi" width="16" height="16">
-                                    <use xlink:href="#trash-fill"></use>
-                                </svg>
-                                Delete My Account
-                            </button>
+                                <div class="modal-body">
+                                    <p>
+                                        Do you really want to delete your account?
+                                    </p>
+                                    <form method="POST" id="form-del-account"
+                                          action="{{ url_for('main.delete_account') }}">
+                                        {{ con_form_account.csrf_token() }}
+                                        <div class="form-floating w-75 ms-auto me-auto">
+                                            {{ render_field(con_form_account.password, con_form_account.is_submitted(),
+                                            class='form-floating') }}
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-danger" form="form-del-account">
+                                        <svg class="bi" width="16" height="16">
+                                            <use xlink:href="#trash-fill"></use>
+                                        </svg>
+                                        Delete My Account
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -129,7 +148,6 @@
     </div>
 
 </div>
-
 
 {% endblock %}
 

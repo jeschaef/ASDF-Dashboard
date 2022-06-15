@@ -113,7 +113,7 @@
 <!-- start body -->
 <table border="0" cellpadding="0" cellspacing="0" width="100%">
 
-    <!-- start logo TODO logo -->
+    <!-- start logo -->
     <tr>
         <td align="center" bgcolor="#e9ecef">
             <!--[if (gte mso 9)|(IE)]>
@@ -124,9 +124,9 @@
             <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
                 <tr>
                     <td align="center" valign="top" style="padding: 36px 24px;">
-                        <a href="https://sendgrid.com" target="_blank" style="display: inline-block;">
-                            <img src="https://www.cyberbn.com/wp-content/uploads/2019/01/internet-phishing-hacked-login-password-450w-1174726795-287x300.jpg"
-                                 alt="Logo" border="0" width="48"
+                        <a href="{{ url_for('main.index', _external=True) }}" target="_blank" style="display: inline-block;">
+                            <img src="{{ url_for('static', filename='logo.png') }}"
+                                 alt="Logo" border="0" width="48" height="48"
                                  style="display: block; width: 48px; max-width: 48px; min-width: 48px;">
                         </a>
                     </td>
@@ -191,8 +191,8 @@
                     <td align="left" bgcolor="#ffffff"
                         style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
                         <p style="margin: 0;">Tap the button below to confirm your email address. If you didn't create
-                            an account with <a href="https://blogdesire.com">Paste</a>, you can safely delete this
-                            email.</p>
+                            an account with <a href="{{ url_for('main.index', _external=True) }}">ASDF-Dashboard</a>,
+                            you can safely ignore or delete this email.</p>
                     </td>
                 </tr>
                 <!-- end copy -->
@@ -236,7 +236,7 @@
                 <tr>
                     <td align="left" bgcolor="#ffffff"
                         style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-bottom: 3px solid #d4dadf">
-                        <p style="margin: 0;">Cheers,<br> Paste</p>
+                        <p style="margin: 0;">Cheers,<br> ASDF-Dashboard</p>
                     </td>
                 </tr>
                 <!-- end copy -->
