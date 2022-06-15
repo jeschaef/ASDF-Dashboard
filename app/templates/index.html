@@ -8,28 +8,44 @@
 {% block title %}Main{% endblock %}
 
 {% block content %}
-<div class="p-3">
+<div class="p-3 ms-5 me-5">
 
-    <div class="d-flex rounded p-3" style="background: #4ec55c; height: 300px">
-        <h1 class="h1 mt-auto">ASDF-Dashboard</h1>
-        <h1 class="h3"></h1>
+    <div class="rounded-3 p-5 " style="background: #4ec55c; height: 250px">
+        <h1 class="h1 ms-4 mt-4">ASDF-Dashboard</h1>
+        <h1 class="h3 ms-4 mt-4">A web application for automatic and interactive clustering-based subgroup fairness
+            analysis</h1>
     </div>
 
     {% if current_user.is_authenticated %}
     <p>Hello {{ current_user.name }}!</p>
     {% else %}
-    <p>login</p>
+    <!-- Landing page (abstract, description, repository, paper) -->
+    <div class="row mt-3 gx-3 gy-3">
+
+
+        <div class="col col-4">
+            <h1 class="h3">Abstract</h1>
+            <p>
+                ... abstract ...<br/>
+                ... paper(s) link(s) ...
+            </p>
+        </div>
+        <div class="col col-4">
+            <h1 class="h3">Usage</h1>
+        </div>
+        <div class="col col-4">
+            <h1 class="h3">Project Repository</h1>
+            <p>
+                ... self-hosting ...
+            </p>
+        </div>
+    </div>
     {% endif %}
 
 
 </div>
 
-<footer class="footer bg-light d-flex align-items-center justify-content-center">
-    <div class="">
-        This web service is offered by the <a href="dbda.cs.uni-frankfurt.de">Database Technologies and Data Analytics Group</a> (Institute
-        of Computer Science, Goethe University Frankfurt)
-    </div>
-</footer>
+{% include 'footer.html' %}
 {% endblock %}
 
 

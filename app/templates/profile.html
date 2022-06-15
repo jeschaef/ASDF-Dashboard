@@ -5,6 +5,8 @@
 
 {% block styles %}
 {{ super() }}
+<link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/profile.css') }}" rel="stylesheet">
 <style>
     .column {
         height: 100%;
@@ -15,7 +17,7 @@
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-<div class="p-3">
+<div class="p-3 ms-5 me-5">
     <h1 class="h1">Hello {{ current_user.name }}</h1>
 
     <div class="row mt-3 gx-3 gy-3">
@@ -149,6 +151,7 @@
 
 </div>
 
+{% include 'footer.html' %}
 {% endblock %}
 
 
