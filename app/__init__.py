@@ -106,4 +106,4 @@ def create_app(configuration=ProductionConfig()):
 
 if __name__ == '__main__':
     app = create_app(configuration=DevConfig())
-    app.run()
+    app.run(debug=True)

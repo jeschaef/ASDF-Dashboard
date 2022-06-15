@@ -1,9 +1,12 @@
 import logging
 
 import bcrypt
+from flask import url_for, request
 from flask_login import LoginManager
-from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
+from itsdangerous import URLSafeTimedSerializer
+from werkzeug.utils import redirect
 
+from app.blueprints.util import redirect_url
 from app.model import User
 
 # Login manager
@@ -19,6 +22,12 @@ log = logging.getLogger()
 @login_mngr.user_loader
 def load_user(session_token):
     return User.query.filter_by(session_token=session_token).first()
+
+
+@login_mngr.unauthorized_handler
+def unauthorized():
+    return redirect(url_for('auth.login', next=url_for(request.endpoint), info_modal_title="Unauthorized",
+                            info_modal_body="You need to be logged in."))
 
 
 def get_hashed_password(plain_text_password: str or bytes) -> bytes:

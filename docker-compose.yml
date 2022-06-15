@@ -12,7 +12,7 @@ services:
     build:
       context: "."
       args:
-        - "FLASK_ENV=${FLASK_ENV}"
+        - FLASK_ENV=production
     depends_on:
       - "redis"
       - "postgres"
@@ -34,7 +34,7 @@ services:
     build:
       context: "."
       args:
-        - "FLASK_ENV=${FLASK_ENV}"
+        - FLASK_ENV=production
     command: celery -A app.celery_app worker -P solo -l info
     depends_on:
       - "redis"

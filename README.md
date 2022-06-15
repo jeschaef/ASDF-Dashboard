@@ -1,4 +1,4 @@
-# FairnessFrontend
+# ASDF-Dashboard
 
 Redis docker:
 
@@ -23,7 +23,7 @@ MAIL_PASSWORD=<password_smtp_server>
 MAIL_USE_TLS=<flag_tls_smtp_server(True/False)>
 
 # General
-COMPOSE_PROJECT_NAME=FairnessFrontend
+COMPOSE_PROJECT_NAME=asdf-dashboard
 
 # Docker
 DOCKER_RESTART_POLICY=unless-stopped
