@@ -21,6 +21,10 @@ main {
     outline: 0;
 }
 
+.dropdown-toggle-color {
+    color: var(--main-bg-color);
+}
+
 .nav-flush .nav-link {
     border-radius: 0;
 }
@@ -91,6 +95,7 @@ body {
     height: 100vh;
     position: fixed;
     z-index: 1;
+    background-color: var(--trans-bg-color);
 }
 
 
@@ -109,4 +114,13 @@ body {
 .navbar .navbar-toggler {
     top: .25rem;
     right: 1rem;
+}
+
+
+.nav-link {
+    color: var(--main-bg-color);
+}
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+    background-color: var(--main-bg-color);
 }

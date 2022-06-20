@@ -5,7 +5,6 @@
 
 {% block styles %}
 {{ super() }}
-<link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/profile.css') }}" rel="stylesheet">
 <style>
     .column {
@@ -30,11 +29,11 @@
                     <h1 class="h5 ms-4 mb-4">Change password</h1>
 
                     {{ form.csrf_token() }}
-                    <div class="row p-2 g-3 d-flex ">
+                    <div class="row p-2 g-3 d-flex">
                         {{ render_field(form.old_password, form.is_submitted(), class='form-floating') }}
                         {{ render_field(form.new_password, form.is_submitted(), class='form-floating') }}
                         {{ render_field(form.confirm, form.is_submitted(), class='form-floating') }}
-                        {{ form.submit(class="w-50 form-floating btn btn-lg btn-primary ms-auto me-auto")}}
+                        {{ form.submit(class="w-auto form-floating btn btn-lg btn-primary ms-auto me-auto")}}
                     </div>
                 </form>
             </div>
@@ -53,7 +52,7 @@
             <div class="border rounded shadow p-2 column">
                 <div class="row p-2 g-4 d-flex">
                     <h1 class="h5 ms-4 mb-4">Delete All My Uploaded Datasets</h1>
-                    <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-datasets"
+                    <button type="button" class="btn btn-lg btn-danger w-auto ms-auto me-auto" id="delete-datasets"
                             data-bs-toggle="modal" data-bs-target="#confirm-delete-data">
                         <svg class="bi" width="20" height="20">
                             <use xlink:href="#trash-fill"></use>
@@ -99,7 +98,7 @@
                     </div>
 
                     <h1 class="h5 ms-4 mb-4">Delete Account</h1>
-                    <button type="button" class="btn btn-lg btn-danger w-50 ms-auto me-auto" id="delete-account"
+                    <button type="button" class="btn btn-lg btn-danger w-auto ms-auto me-auto" id="delete-account"
                             data-bs-toggle="modal" data-bs-target="#confirm-delete-account">
                         <svg class="bi" width="20" height="20">
                             <use xlink:href="#trash-fill"></use>

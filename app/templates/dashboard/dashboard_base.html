@@ -21,7 +21,7 @@
     <main class="main">
         <div class="d-flex flex-column bg-light sidebar">
             <a href="{{ url_for('main.index') }}" class="d-block p-3 link-dark text-decoration-none border-bottom"
-                style="margin-top: -5px; margin-bottom: -5px;">
+               style="margin-top: -5px; margin-bottom: -5px;">
                 <img src="{{ url_for('static', filename='logo.png') }}" width="40" height="40">
                 <span class="visually-hidden">Icon-only</span>
             </a>
@@ -67,8 +67,9 @@
             </ul>
             <div class="dropdown border-top">
                 <a href="#"
-                   class="d-flex align-items-center justify-content-center p-3 link-primary text-decoration-none dropdown-toggle"
-                   id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+                   class="d-flex align-items-center justify-content-center p-3 dropdown-toggle-color
+                   text-decoration-none dropdown-toggle" id="dropdownUser" data-bs-toggle="dropdown"
+                   aria-expanded="false">
                     <svg class="bi" width="24" height="24" role="img" aria-label="Customers">
                         <use xlink:href="#people-circle"/>
                     </svg>
@@ -88,8 +89,8 @@
 
         <!--        <div class="col-md-10 col-lg-11">-->
         <div class="p-3 dashboard-content">
-        {% block inner_content %}
-        {% endblock %}
+            {% block inner_content %}
+            {% endblock %}
         </div>
         <!--        </div>-->
 

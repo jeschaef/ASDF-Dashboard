@@ -1,3 +1,8 @@
+:root {
+    --main-bg-color: rgba(78, 197, 92, 1);
+    --trans-bg-color: rgba(78, 197, 92, 0.25);
+}
+
 .bi {
     vertical-align: -.125em;
     pointer-events: none;
@@ -6,4 +11,29 @@
 
 body {
     overflow-x: hidden;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.footer {
+    min-height: 70px;
+    width: 100%;
+    margin-top: auto;
+    background-color: var(--trans-bg-color);
+}
+
+.btn-margins {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.navbar-bg {
+    background-color: var(--trans-bg-color);
+}
+
+.titlebox {
+    background: var(--main-bg-color);
+    height: 250px;
 }

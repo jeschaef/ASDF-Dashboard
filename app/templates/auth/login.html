@@ -5,6 +5,8 @@
 
 {% block formcontent %}
 
+<h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+
 {{ render_field(form.email_or_username, form.is_submitted(), class='form-floating') }}
 {{ render_field(form.password, form.is_submitted(), class='form-floating') }}
 

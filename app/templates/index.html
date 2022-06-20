@@ -1,46 +1,66 @@
 {%- extends "base.html" %}
 
-{% block styles %}
-{{ super() }}
-<link href="{{ url_for('static', filename='css/sticky-footer.css') }}" rel="stylesheet"/>
-{% endblock %}
-
 {% block title %}Main{% endblock %}
 
 {% block content %}
 <div class="p-3 ms-5 me-5">
-
-    <div class="rounded-3 p-5 " style="background: #4ec55c; height: 250px">
+    <div class="rounded-3 p-5 mb-4 titlebox">
         <h1 class="h1 ms-4 mt-4">ASDF-Dashboard</h1>
         <h1 class="h3 ms-4 mt-4">A web application for automatic and interactive clustering-based subgroup fairness
             analysis</h1>
     </div>
 
     {% if current_user.is_authenticated %}
-    <p>Hello {{ current_user.name }}!</p>
-    {% else %}
+    <h1 class="">Hello {{ current_user.name }}!</h1>
+    {% endif %}
     <!-- Landing page (abstract, description, repository, paper) -->
     <div class="row mt-3 gx-3 gy-3">
-
 
         <div class="col col-4">
             <h1 class="h3">Abstract</h1>
             <p>
                 ... abstract ...<br/>
-                ... paper(s) link(s) ...
+                For further information on the scientific details and the experimental results see our paper
+                <a href="#">
+                    ADBIS '22 paper: Clustering-based Subgroup Detection for Automated Fairness Analysis
+                </a>.
             </p>
         </div>
         <div class="col col-4">
             <h1 class="h3">Usage</h1>
+            <p>
+            <ul>
+                <li>
+                    <a href="{{ url_for('auth.register') }}">Register</a> your account
+                </li>
+                <li>Upload your datasets and classification results
+                    <ul>
+                        <li>csv-format</li>
+                        <li>max. disk quota per user: 10MB</li>
+                    </ul>
+                </li>
+                <li>Browse the data of your uploaded datasets</li>
+                <li>Perform a subgroup fairness analysis of your trained classifier
+                    <ul>
+                        <li>Automated subgroup detection by clustering</li>
+                        <li>Interactive visualization of fairness measures</li>
+                        <li>Inspect the classifier behavior on individual subgroups</li>
+                    </ul>
+                </li>
+            </ul>
+            </p>
         </div>
         <div class="col col-4">
             <h1 class="h3">Project Repository</h1>
             <p>
-                ... self-hosting ...
+                The ASDF-Dashboard is available open-source at <a href="#">GitHub</a>. You can also install and deploy
+                the application on your own machine as a self-hosted instance following the instructions given in the
+                repository. For example, if you want to keep sensitive data on your machine or network or want to share
+                the application to your team, a self-hosted instance would do the job. This way you can restrict access
+                to the web service and, e.g., configure a different/unlimited disk quota.
             </p>
         </div>
     </div>
-    {% endif %}
 
 
 </div>
