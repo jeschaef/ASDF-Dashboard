@@ -62,7 +62,7 @@ services:
     depends_on:
       - web
     volumes:
-      - ./app/conf/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./app/conf/nginx/nginx-template.conf:/etc/nginx/nginx-template.conf
 
 volumes:
   redis: { }

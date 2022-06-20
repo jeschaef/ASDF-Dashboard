@@ -2,12 +2,12 @@
 
 
 {% block content %}
-<div>
-    <p>
+<div class="p-3 ms-5 me-5">
+    <p class="fs-5">
         You have not confirmed your account yet. Please check your email inbox or the spam folder
         for the mail with the email confirmation link.
     </p>
-    <p>
+    <p class="fs-5">
         If you didn't receive the email, you can <a href="{{ url_for('auth.resend_confirmation') }}">resend</a> it.
     </p>
     <a class="btn btn-lg btn-primary" href="{{ url_for('auth.resend_confirmation') }}">

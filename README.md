@@ -76,13 +76,11 @@ POSTGRES_PASSWORD=<password_postgres>
 
 ### Configure Nginx
 
-Adapt the [nginx configuration](app/conf/nginx/nginx.conf) to your environment.
-The listening port and the server name have to be set according to your
-host/domain, that will be pointed to the web service, and the same
-value as the NGINX_PORT environment variable. Otherwise, the port
-mapping of the docker container can be updated in the 
-[docker-compose](docker-compose.yml) configuration file if the container
-should listen on a different port than the hosts port.
+Adapt the [nginx configuration template](app/conf/nginx/nginx-template.conf) to your 
+environment. To this end, copy it into a file named `nginx.conf`, which is located at 
+[the same folder](app/conf/nginx). The listening port and the server name have to be 
+set according to your host/domain, that will be pointed to the web service, and the 
+same value as the NGINX_PORT environment variable (in the `.env`-file).
 
 ```
 ...
@@ -95,7 +93,7 @@ server {
 
 The number of worker processes (`worker_processes`) can also be 
 increased. It is not recommended to change other values in the
-[nginx configuration](app/conf/nginx/nginx.conf).
+[nginx configuration](app/conf/nginx/nginx-template.conf).
 
 ### Production setup
 

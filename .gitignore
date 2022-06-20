@@ -4,3 +4,4 @@
 /app/instance/
 /.env
 /instance/
+/app/conf/nginx/nginx.conf
