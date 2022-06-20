@@ -51,7 +51,7 @@ def data_size(owner, dataset):
 
 
 def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):  # TODO MAX_QUOTA
-    all_datasets = Dataset.query.filter_by(owner=owner).all()  # TODO no datasets uploaded yet
+    all_datasets = Dataset.query.filter_by(owner=owner).all()
     quota_used = {}
     bytes_used = 0
     for d in all_datasets:

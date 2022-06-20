@@ -52,7 +52,6 @@ class FairnessTask(Task):
         # TODO task failure
 
 
-# TODO cache results?
 @celery_app.task(bind=True, base=FairnessTask)
 def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, categ_columns=None, param_dict=None):
     log.info(f"Starting fairness analysis: algorithm={algorithm}, pos_label={pos_label}, "

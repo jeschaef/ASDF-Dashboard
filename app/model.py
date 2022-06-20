@@ -7,7 +7,7 @@ from app.db import db
 UUID_LENGTH = 36  # 36 chars = 32 hex digits + 4 dashes
 EMAIL_LENGTH = 100
 USER_NAME_LENGTH = 20
-MIN_PASSWORD_LENGTH = 1   # TODO increase min password length
+MIN_PASSWORD_LENGTH = 8
 PASSWORD_LENGTH = 64
 DATASET_NAME_LENGTH = 30
 FILE_NAME_LENGTH = 50
@@ -16,7 +16,7 @@ FILE_NAME_LENGTH = 50
 class User(db.Model, UserMixin):
     id = db.Column(db.String(UUID_LENGTH), primary_key=True)
     email = db.Column(db.String(EMAIL_LENGTH), unique=True, nullable=False)
-    name = db.Column(db.String(USER_NAME_LENGTH), unique=True, nullable=False)  # todo upper limit
+    name = db.Column(db.String(USER_NAME_LENGTH), unique=True, nullable=False)
     password = db.Column(db.LargeBinary)       # length limited by password input field
     session_token = db.Column(db.String(UUID_LENGTH), unique=True, index=True)  # alternative user id (for session)
     confirmed = db.Column(db.DateTime)

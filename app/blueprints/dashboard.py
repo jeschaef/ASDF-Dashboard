@@ -59,13 +59,11 @@ def datasets():
         if not os.path.exists(file_path):
             db.session.delete(new_dataset)
             db.session.commit()
-            # TODO report error to user
-            log.debug(f"Could not save file '{file_path}'!")
-        else:
-            log.debug(f"Saved file '{file_path}'!")
+            return redirect(url_for('dashboard.datasets', info_modal_title='An error occurred',
+                                    info_modal_body='Could not save your dataset!'))
 
         # Redirect to same page (to clear form inputs)
-        return redirect(redirect_url('dashboard.datasets'))
+        return redirect(url_for('dashboard.datasets'))
 
     # Get all the user's datasets
     dataset_list = Dataset.query.filter_by(owner=owner)
@@ -176,7 +174,7 @@ def raw_data_columns():
 @login_required
 @confirmation_required
 def fairness():
-    # Get all the user's datasets   # TODO no datasets available
+    # Get all the user's datasets
     all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.name).all()
     if len(all_datasets) <= 0:
         return redirect(url_for('dashboard.datasets', info_modal_title="No datasets found",

@@ -12,10 +12,10 @@
     <div class="row p-2 gx-5 gy-3">
 
         <!-- Dataset selectpicker -->
-        <div class="col col-sm-1">
+        <div class="col col-1">
             <label for="dataset-select" class="form-label col-form-label-lg">Dataset:</label>
         </div>
-        <div class="col col-sm-2 offset-sm-1">
+        <div class="col col-2 offset-1">
             <select class="selectpicker" id="dataset-select" name="dataset" data-live-search="true"
                     title="Choose a dataset..." required>
                 {% for d in all_datasets %}
@@ -28,22 +28,22 @@
         </div>
 
         <!-- Positive class switch -->
-        <div class="col col-sm-2 offset-sm-1 form-check form-switch form-control-lg">
+        <div class="col col-3 offset-1 form-check form-switch form-control-lg">
             <input class="form-check-input" type="checkbox" role="switch" id="switch">
             <label class="form-check-label" for="switch">Positive class label: 0</label>
         </div>
 
         <!-- Entropy threshold slider -->
-        <div class="col col-sm-3 offset-sm-1">
+        <div class="col col-3">
             <label for="threshold" class="form-label col-form-label-lg">Entropy threshold: 0.65</label>
             <input type="range" class="form-range" min="0" max="1" step="0.01" value="0.65" id="threshold">
         </div>
 
         <!-- Categorical columns multi selectpicker-->
-        <div class="col col-sm-2">
+        <div class="col col-2">
             <label for="select-categ" class="form-label col-form-label-lg">Categorical columns:</label>
         </div>
-        <div class="col col-sm-2">
+        <div class="col col-2">
             <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
                   data-bs-content="Select a dataset first!" id="popover-categ">
                 <select class="selectpicker" id="select-categ" data-actions-box="true"
@@ -53,17 +53,17 @@
         </div>
 
         <!-- Clustering algorithm selectpicker -->
-        <div class="col col-sm-2">
+        <div class="col col-2">
             <label for="select-algo" class="form-label col-form-label-lg">Clustering algorithm:</label>
         </div>
-        <div class="col col-sm-2">
+        <div class="col col-2">
             <select class="selectpicker" id="select-algo" data-live-search="true"
                     title="Choose a clustering ..." required>
             </select>
         </div>
 
         <!-- Algorithm parameters + Modal -->
-        <div class="col col-sm-2">
+        <div class="col col-3 offset-1">
             <span class="d-inline-block" tabindex="0" data-bs-toggle="popover" data-bs-trigger="hover focus"
                   data-bs-content="Select an algorithm first!" id="popover-params">
                 <button type="button" class="btn btn-lg btn-danger" data-bs-toggle="modal"
@@ -100,11 +100,12 @@
             </div>
         </div>
 
-        <!-- Evaluate button -->
-        <div class="col col-sm-2">
-            <input class="btn btn-lg btn-primary" id="task-submit" name="submit" type="button"
-                   value="Evaluate Fairness"/>
-        </div>
+
+    </div>
+    <!-- Evaluate button -->
+    <div class="d-flex mt-2 mb-3">
+        <input class="btn btn-lg btn-primary w-25 ms-auto me-auto" id="task-submit" name="submit" type="button"
+               value="Evaluate Fairness"/>
     </div>
 </form>
 
