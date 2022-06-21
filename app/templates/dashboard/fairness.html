@@ -58,7 +58,7 @@
         </div>
         <div class="col col-2">
             <select class="selectpicker" id="select-algo" data-live-search="true"
-                    title="Choose a clustering ..." required>
+                    title="Choose a clustering ...">
             </select>
         </div>
 
@@ -102,10 +102,12 @@
 
 
     </div>
-    <!-- Evaluate button -->
-    <div class="d-flex mt-2 mb-3">
-        <input class="btn btn-lg btn-primary w-25 ms-auto me-auto" id="task-submit" name="submit" type="button"
-               value="Evaluate Fairness"/>
+    <!-- Evaluation buttons -->
+    <div class="d-flex mt-4 mb-3">
+        <input class="btn btn-lg btn-primary w-25 ms-auto me-auto" id="task-auto-submit" name="submit" type="button"
+               value="Automatic Evaluation">
+        <input class="btn btn-lg btn-primary w-25 me-auto" id="task-submit" name="submit" type="button"
+               value="Manual Evaluation"/>
     </div>
 </form>
 

@@ -1,6 +1,7 @@
 const $status = $('#task-status')               // Task status alert
 const $area = $('#chart-area')                  // Div parent container of charts/tables with results
 const $submit = $('#task-submit')               // Submit button (note: does not submit form)
+const $auto_submit = $('#task-auto-submit')     // Submit button (automatic fairness evaluation)
 const $dataset = $("#dataset-select")           // Dataset selection
 const $switch = $('#switch')                    // Positive class switch (0/1)
 const $slider = $('#threshold')                 // Entropy threshold (0 <= t <= 1)
@@ -397,7 +398,7 @@ function showStatus(status_msg, fades = false) {
 }
 
 
-function startFairnessTask() {
+function startFairnessTask(is_manual) {
 
     // Validate form manually
     const is_valid = $form.get(0).reportValidity()
@@ -412,8 +413,15 @@ function startFairnessTask() {
     const positive_class = ($switch.is(":checked") ? 1 : 0)
     const threshold = $slider.val()
     const categ_columns = $categoricals.val()
-    const algorithm = $algorithm.val()
-    const [parameters, values] = getClusteringParameters()
+    let [algorithm, parameters, values] = [null, null, null]
+    if (is_manual) {
+        algorithm = $algorithm.val()
+        [parameters, values] = getClusteringParameters()
+    } else {
+        algorithm = 'agglomerative'
+        parameters = ['linkage', 'n_clusters']     // TODO auto set n_clusters based on dataset size?
+        values = ['single', 10]
+    }
 
     const data = {
         dataset_id: dataset_id,
@@ -772,7 +780,12 @@ function highlightSubgroup(evt, source_chart, needs_sort = false) {
 $(function () {
 
     // Add button functionality (submit task)
-    $submit.click(startFairnessTask)
+    $submit.click(function () {
+        startFairnessTask(true)
+    })
+    $auto_submit.click(function () {
+        startFairnessTask(false)
+    })
 
     // Update switch label text on change (positive class)
     $switch.change(function () {
