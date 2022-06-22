@@ -54,7 +54,7 @@ def register():
         # Send confirmation link via email
         token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
         confirmation_url = url_for('auth.confirm_email', token=token, _external=True)
-        send_confirmation_mail(current_app, name, email, confirmation_url)
+        send_confirmation_mail(name, email, confirmation_url)
 
         # Login user & redirect
         perform_login(user)
@@ -109,7 +109,7 @@ def resend_confirmation():
     # Send confirmation link via email
     token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
     confirmation_url = url_for('auth.confirm_email', token=token)
-    send_confirmation_mail(current_app, name, email, confirmation_url)
+    send_confirmation_mail(name, email, confirmation_url)
     return redirect(redirect_url('auth.unconfirmed'))
 
 

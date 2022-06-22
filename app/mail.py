@@ -9,7 +9,7 @@ from app.util import get_project_root
 mail = Mail()
 
 
-def send_confirmation_mail(app, name, recipient, confirmation_url):
+def send_confirmation_mail(name, recipient, confirmation_url):
     body = render_template("mail/confirmation.html", name=name, confirmation_url=confirmation_url)
     msg = EmailMessage(subject="Confirm your registration",
                         body=body,
@@ -19,7 +19,7 @@ def send_confirmation_mail(app, name, recipient, confirmation_url):
 
     # Embed logo
     file_path = get_project_root() / "static/logo.png"
-    with app.open_resource(file_path) as res:
+    with open(file_path) as res:
         msg_logo = MIMEImage(res.read())
         msg_logo.add_header('Content-ID', '<logo_png>')
         msg_logo.add_header('Content-Disposition', 'inline', filename='logo.png')
