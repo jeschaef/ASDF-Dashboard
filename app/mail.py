@@ -8,7 +8,7 @@ from app.util import get_project_root
 mail = Mail()
 
 
-def send_confirmation_mail(name, recipient, confirmation_url):
+def send_confirmation_mail(app, name, recipient, confirmation_url):
     body = render_template("mail/confirmation.html", name=name, confirmation_url=confirmation_url)
     msg = EmailMessage(subject="Confirm your registration",
                         body=body,
@@ -18,7 +18,8 @@ def send_confirmation_mail(name, recipient, confirmation_url):
 
     # Embed logo
     file_path = get_project_root() / "app/static/logo.png"
-    msg.attach(filename="logo.png", content_type="image/png", data=file_path.read(),
-                   disposition="inline", headers=[['Content-ID', '<logo_png>']])
+    with app.open_resource(file_path) as res:
+        msg.attach(filename="logo.png", content_type="image/png", data=res.read(),
+                    disposition="inline", headers=[['Content-ID', '<logo_png>']])
 
     msg.send()
