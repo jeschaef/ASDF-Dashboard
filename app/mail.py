@@ -1,3 +1,4 @@
+from email.mime.image import MIMEImage
 from os import getenv
 
 from flask import render_template
@@ -19,7 +20,9 @@ def send_confirmation_mail(app, name, recipient, confirmation_url):
     # Embed logo
     file_path = get_project_root() / "static/logo.png"
     with app.open_resource(file_path) as res:
-        msg.attach(filename="logo.png",  content=res.read(), mimetype='image/png',
-                    headers=[['Content-ID', '<logo_png>']])
+        msg_logo = MIMEImage(res.read())
+        msg_logo.add_header('Content-ID', '<logo_png>')
+        msg_logo.add_header('Content-Disposition', 'inline', filename='logo.png')
+        msg.attach(msg_logo)
 
     msg.send()
