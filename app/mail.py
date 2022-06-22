@@ -17,7 +17,7 @@ def send_confirmation_mail(app, name, recipient, confirmation_url):
     msg.content_subtype = 'html'
 
     # Embed logo
-    file_path = get_project_root() / "app/static/logo.png"
+    file_path = get_project_root() / "static/logo.png"
     with app.open_resource(file_path) as res:
         msg.attach(filename="logo.png", content_type="image/png", data=res.read(),
                     disposition="inline", headers=[['Content-ID', '<logo_png>']])
