@@ -48,6 +48,7 @@ MAIL_PORT=<port_smtp_server>
 MAIL_USERNAME=<user_smtp_server>
 MAIL_PASSWORD=<password_smtp_server>
 MAIL_USE_TLS=<flag_tls_smtp_server(True/False)>
+MAIL_SENDER=<sender_email_address>
 
 # General
 COMPOSE_PROJECT_NAME=asdf-dashboard
