@@ -90,6 +90,18 @@ server {
         server_name {your_domain_name};
         ...
 }
+...
+```
+
+If you want to set a different user disk quota, you have to set the `MAX_QUOTA_MB` 
+environment variable in the `.env`-file and configure limit for the client body size
+(`client_max_body_size`) in the nginx configuration, e.g.,
+```
+...
+http {
+    client_max_body_size 15M;
+    ...
+}
 ```
 
 The number of worker processes (`worker_processes`) can also be 

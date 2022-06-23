@@ -8,10 +8,11 @@ from sklearn.cluster import *
 
 from app.cache import cache
 from app.db import db
-from app.model import Dataset, User
+from app.model import Dataset
 
 log = logging.getLogger()
 
+MAX_QUOTA_MB = os.getenv("MAX_QUOTA_MB", 10)
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)
@@ -50,7 +51,7 @@ def data_size(owner, dataset):
     return os.path.getsize(file_path)
 
 
-def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):  # TODO MAX_QUOTA
+def get_user_quota(owner, MAX_QUOTA_MB=MAX_QUOTA_MB):
     all_datasets = Dataset.query.filter_by(owner=owner).all()
     quota_used = {}
     bytes_used = 0
@@ -58,7 +59,7 @@ def get_user_quota(owner, MAX_QUOTA=10 * 1024 * 1024):  # TODO MAX_QUOTA
         size = data_size(owner, d.id)
         quota_used[d.name] = size
         bytes_used += size
-    bytes_free = MAX_QUOTA - bytes_used
+    bytes_free = MAX_QUOTA_MB * 1024 * 1024 - bytes_used
     return {'quota_used': quota_used, 'quota_free': bytes_free}
 
 
