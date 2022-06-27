@@ -19,7 +19,7 @@ def send_confirmation_mail(name, recipient, confirmation_url):
 
     # Embed logo
     file_path = get_project_root() / "static/logo.png"
-    with open(file_path) as res:
+    with open(file_path, 'rb') as res:
         msg_logo = MIMEImage(res.read())
         msg_logo.add_header('Content-ID', '<logo_png>')
         msg_logo.add_header('Content-Disposition', 'inline', filename='logo.png')

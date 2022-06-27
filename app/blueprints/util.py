@@ -12,7 +12,7 @@ from app.model import Dataset
 
 log = logging.getLogger()
 
-MAX_QUOTA_MB = os.getenv("MAX_QUOTA_MB", 10)
+MAX_QUOTA_MB = int(os.getenv("MAX_QUOTA_MB", 10))
 
 def is_safe_url(target):
     ref_url = urlparse(request.host_url)

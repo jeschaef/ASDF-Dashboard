@@ -413,12 +413,13 @@ function startFairnessTask(is_manual) {
     const positive_class = ($switch.is(":checked") ? 1 : 0)
     const threshold = $slider.val()
     const categ_columns = $categoricals.val()
-    let [algorithm, parameters, values] = [null, null, null]
+    let algorithm, parameters, values
+
     if (is_manual) {
-        algorithm = $algorithm.val()
-        [parameters, values] = getClusteringParameters()
+        algorithm = $algorithm.val();
+        [parameters, values] = getClusteringParameters(algorithm)
     } else {
-        algorithm = 'agglomerative'
+        algorithm = 'agglomerative';
         parameters = ['linkage', 'n_clusters']     // TODO auto set n_clusters based on dataset size?
         values = ['single', 10]
     }
@@ -706,10 +707,9 @@ function makeSelectPicker(p, id, options) {
 }
 
 
-function getClusteringParameters() {
+function getClusteringParameters(algo) {
 
     // Info for selected algorithm
-    const algo = $algorithm.val()
     const info = clustering_info[algo]
 
     const $modal_row = $('#modal-row')
