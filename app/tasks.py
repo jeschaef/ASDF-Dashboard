@@ -2,9 +2,10 @@ import pandas as pd
 from celery import Task
 from celery.utils.log import get_task_logger
 
-from app.blueprints.util import choose_model
+from app.blueprints.util import choose_model, estimate_n_clusters
 from app.cache import cache
 from app.celery_app import celery_app
+from app.model import Dataset
 from subgroup_detection.fairness import test_model_fairness
 
 log = get_task_logger(__name__)
@@ -53,7 +54,8 @@ class FairnessTask(Task):
 
 
 @celery_app.task(bind=True, base=FairnessTask)
-def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, categ_columns=None, param_dict=None):
+def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, categ_columns=None,
+                      label_column='class', prediction_column='out', param_dict=None, estimate_k=False):
     log.info(f"Starting fairness analysis: algorithm={algorithm}, pos_label={pos_label}, "
              f"threshold={threshold}, categ_columns={categ_columns}")
 
@@ -64,14 +66,19 @@ def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, cat
     progress('Loading data ...')
     data = pd.read_json(df_json)  # deserialize json
 
+    # If estimate_k is True, apply xmeans to get an estimate of the number of clusters k
+    if estimate_k:
+        k = estimate_n_clusters(data, categ_columns, label_column, prediction_column)
+        log.info(f"Estimated n clusters: {k}")
+        param_dict['n_clusters'] = k  # overwrites previous setting
+
     # Specify model
-    # model = AgglomerativeClustering(n_clusters=50, linkage='single')
     model = choose_model(algorithm, param_dict)
     log.info(f"Model {model}")
 
     # Test fairness of the classification model
     fair_res = test_model_fairness(model, data, pos_label=pos_label, threshold=threshold, categ_columns=categ_columns,
-                                   progress=progress)
+                                   progress=progress, label_column=label_column, prediction_column=prediction_column)
 
     # Return result as json
     return fair_res.to_json()

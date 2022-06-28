@@ -195,7 +195,7 @@
 <script>
     const start_task_url = JSON.parse('{{ url_for("task.start_fairness_task") | tojson }}')
     const clustering_info_url = JSON.parse('{{ url_for("dashboard.clustering_info") | tojson }}')
-    const columns_info_url = JSON.parse('{{ url_for("dashboard.raw_data_columns") |tojson }}')
+    const columns_info_url = JSON.parse('{{ url_for("dashboard.raw_data_columns") | tojson }}')
 </script>
 <script src="{{ url_for('static', filename='js/fairness.js') }}"></script>
 {% endblock %}

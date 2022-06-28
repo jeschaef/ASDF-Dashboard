@@ -34,8 +34,9 @@ const ranking_chart = createRankingChart()
 // Table
 const $table = $('#table-groups')
 
-// Clustering algorithm info
+// Clustering algorithm info & dataset sizes
 let clustering_info = null
+let dataset_sizes = {}
 
 
 function parseFairnessResult() {
@@ -413,15 +414,17 @@ function startFairnessTask(is_manual) {
     const positive_class = ($switch.is(":checked") ? 1 : 0)
     const threshold = $slider.val()
     const categ_columns = $categoricals.val()
-    let algorithm, parameters, values
+    let algorithm, parameters, values, estimate_k
 
     if (is_manual) {
         algorithm = $algorithm.val();
         [parameters, values] = getClusteringParameters(algorithm)
+        estimate_k = false
     } else {
         algorithm = 'agglomerative';
-        parameters = ['linkage', 'n_clusters']     // TODO auto set n_clusters based on dataset size?
-        values = ['single', 10]
+        parameters = ['linkage']
+        values = ['single']
+        estimate_k = true
     }
 
     const data = {
@@ -432,6 +435,7 @@ function startFairnessTask(is_manual) {
         algorithm: algorithm,
         parameters: parameters,
         values: values,
+        estimate_k: estimate_k,
     }
 
     // Send POST request to start the task (as json)
@@ -839,6 +843,14 @@ $(function () {
         function (data) {
             clustering_info = data
             initClusteringAlgorithms()
+        }
+    )
+
+    // Get dataset sizes
+    $.getJSON(
+        dataset_sizes_url,
+        function (data) {
+            dataset_sizes = data
         }
     )
 

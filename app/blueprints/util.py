@@ -1,14 +1,18 @@
 import logging
+import math
 import os
 from urllib.parse import urlparse, urljoin
 
 import pandas as pd
 from flask import request, abort, url_for, current_app
+from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
+from pyclustering.cluster.xmeans import xmeans
 from sklearn.cluster import *
 
 from app.cache import cache
 from app.db import db
 from app.model import Dataset
+from subgroup_detection.util import prepare
 
 log = logging.getLogger()
 
@@ -226,3 +230,15 @@ def get_param_dict(algorithm, parameters, values):
             val = v
         param_dict[p] = val
     return param_dict
+
+
+def estimate_n_clusters(data, categ_columns=None, label_column='class', prediction_column='out'):
+    amount_initial_centers = 2
+    x = prepare(data, categ_columns=categ_columns, label_column=label_column, prediction_column=prediction_column)
+    initial_centers = kmeans_plusplus_initializer(x, amount_initial_centers).initialize()
+
+    kmax = math.floor(math.sqrt(len(data) / 2))
+    xmeans_instance = xmeans(x, initial_centers, kmax=kmax)
+    xmeans_instance.process()
+    return len(xmeans_instance.get_centers())
+

@@ -21,3 +21,4 @@ progressbar2==4.0.0
 celery[redis]==5.2.6
 python-dotenv==0.20.0
 itsdangerous==2.1.2
+pyclustering==0.10.1.2

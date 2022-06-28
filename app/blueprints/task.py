@@ -1,7 +1,10 @@
 import logging
+import math
 
 from flask import Blueprint, jsonify, request, url_for, abort
 from flask_login import login_required, current_user
+from pyclustering.cluster.center_initializer import kmeans_plusplus_initializer
+from pyclustering.cluster.xmeans import xmeans
 from sklearn.cluster import KMeans
 
 from app.blueprints.util import load_data, get_param_dict
@@ -23,16 +26,16 @@ def start_fairness_task():
 
     # Get data from request body
     dataset_id = request.form.get("dataset_id")  # TODO no dataset id in request body
-    dataset = Dataset.query.get(dataset_id)
     pos_label = int(request.form.get("positive_class"))
     threshold = float(request.form.get("threshold"))
     categ_columns = request.form.getlist("categ_columns[]")
-    if not categ_columns:                   # If not provided, set to None
+    if not categ_columns:  # If not provided, set to None
         categ_columns = None
 
     algorithm = request.form.get("algorithm")
     parameters = request.form.getlist("parameters[]")
     values = request.form.getlist("values[]")
+    estimate_k = request.form.get("estimate_k")
     param_dict = get_param_dict(algorithm, parameters, values)
     log.debug(f"{param_dict}")
 
@@ -41,9 +44,12 @@ def start_fairness_task():
     data_json = data.to_json()  # json serialization is required to send task
 
     # Start task
+    dataset = Dataset.query.get(dataset_id)
     t = fairness_analysis.delay(data_json, algorithm, pos_label=pos_label, threshold=threshold,
-                                categ_columns=categ_columns, param_dict=param_dict)
-    FairnessTask.cache(current_user, t.id)      # cache running task
+                                categ_columns=categ_columns, label_column=dataset.label_column,
+                                prediction_column=dataset.prediction_column, param_dict=param_dict,
+                                estimate_k=estimate_k)
+    FairnessTask.cache(current_user, t.id)  # cache running task
 
     return jsonify({}), 202, {'status': url_for('task.status')}
 
@@ -76,7 +82,7 @@ def status():
             'status': 'Successfully finished task!',
             'result': t.info  # task.info is a json string (result)
         }
-        FairnessTask.delete(current_user)       # remove cache entry
+        FairnessTask.delete(current_user)  # remove cache entry
     else:
         # something went wrong in the background job (states: FAILURE, RETRY, REVOKED)
         response = {

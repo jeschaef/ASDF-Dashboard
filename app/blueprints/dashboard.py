@@ -170,6 +170,18 @@ def raw_data_columns():
     return columns.to_json(default_handler=str)  # default handler to fix recursion OverflowError
 
 
+@dashboard.route('/dashboard/datasets/sizes')
+@login_required
+@confirmation_required
+def raw_data_sizes():
+    all_datasets = Dataset.query.filter_by(owner=current_user.id).order_by(Dataset.name).all()
+    if len(all_datasets) <= 0:
+        return redirect(url_for('dashboard.datasets', info_modal_title="No datasets found",
+                                info_modal_body="You have to upload a dataset first."))
+    # Return sizes of all datasets
+    return {d.id: len(load_data(current_user.id, d.id)) for d in all_datasets}
+
+
 @dashboard.route('/dashboard/fairness')
 @login_required
 @confirmation_required
