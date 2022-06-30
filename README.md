@@ -108,6 +108,12 @@ The number of worker processes (`worker_processes`) can also be
 increased. It is not recommended to change other values from the
 [nginx configuration template](app/conf/nginx/nginx-template.conf).
 
+### Update footer
+
+Update the [`footer.html`](app/templates/footer.html) accordingly to tell the
+users who is hosting this dashboard.
+
+
 ### Production setup
 
 Build and run the docker container setup with
