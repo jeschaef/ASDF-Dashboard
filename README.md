@@ -15,8 +15,8 @@ in the dashboard. The interactive charts provide various perspectives
 and deep insights into the classifier's behavior on the
 detected subgroups.
 
-We offer a [live demo]() of the ASDF-Dashboard service. The 
-ASDF-Dashboard can also be self-hosted. The installation and deployment
+We offer a [live demo](http://server1.dbda.cs.uni-frankfurt.de) of the ASDF-Dashboard 
+service. The ASDF-Dashboard can also be self-hosted. The installation and deployment
 instructions for the self-hosted setup are given below. 
 
 For further information on the scientific details and the experimental
