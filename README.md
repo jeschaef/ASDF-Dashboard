@@ -1,3 +1,5 @@
+<img align="left" width="80" height="80" src="https://github.com/jeschaef/ASDF-Dashboard/blob/f56f7876e7ecd49363bccd1b4048376e4854cc3d/app/static/logo.png" alt="Project app icon">
+
 # ASDF-Dashboard
 
 This web application provides a service for an automated subgroup 
