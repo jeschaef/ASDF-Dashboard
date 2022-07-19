@@ -59,7 +59,8 @@ def create_app(configuration=ProductionConfig()):
     setup_logging(app_root)
 
     # Flask
-    app = Flask(__name__)
+    instance_path = os.path.join(os.path.dirname(app_root), 'instance')
+    app = Flask(__name__, instance_path=instance_path)
 
     # ProxyFix
     if isinstance(configuration, ProductionConfig):
