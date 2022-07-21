@@ -5,3 +5,4 @@
 /.env
 /instance/
 /app/conf/nginx/nginx.conf
+/data/

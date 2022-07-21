@@ -70,7 +70,7 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
     @type data: DataFrame
     @param cluster_labels: Cluster assignment for each instance
     @type cluster_labels: list of int
-    @param groups: Protected subgroups (patterns of attribute-value assignments) to assess the classifiers fairness.
+    @param groups: Protected subgroups (patterns of attribute-value assignments) to assess the classifier fairness.
     @type groups: DataFrame
     @param pos_label: Value of the predicted/true classification label (0 or 1)
     @type pos_label: int
@@ -152,6 +152,9 @@ def cluster_fairness(data, cluster_labels, groups, pos_label):
         subgroup_fairness.iloc[i] = [cluster_stat_par, cluster_eq_opp, cluster_avg_odds, cluster_acc,
                                      group_stat_par, group_eq_opp, group_avg_odds, group_acc]
 
+    # Remove column 'cluster' from dataset
+    data.drop(columns='cluster', inplace=True)
+
     return general_fairness, subgroup_fairness, priv_groups, group_sizes
 
 
@@ -218,15 +221,18 @@ def print_cluster_fairness(data, cluster_labels, groups, pos_label):
         print('\tAccuracy:', '%.4f' % row.c_acc, '(cluster),', row.g_acc, '(group)')
 
 
-def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=None, label_column='class',
-                        prediction_column='out', progress=lambda msg: None):
+def test_model_fairness(data, model=KMeans(), cluster_labels=None, pos_label=1, threshold=0.65, categ_columns=None,
+                        label_column='class', prediction_column='out', progress=lambda msg: None):
     """
-
-    @param model: Clustering model to train on the data
-    (Note: The clustering model is not the target of the fairness assessment)
-    @type model: ClusterMixin
     @param data: Dataset with ground-truth (column 'class') and predicted labels (column 'out').
     @type data: DataFrame
+    @param model: Clustering model to train on the data or None if cluster labels are provided.
+    If both the clustering model and the labels are given, the labels are preferred.
+    (Note: The clustering model is not the target of the fairness assessment)
+    @type model: ClusterMixin
+    @param cluster_labels: Cluster labels for all instances of data or None if a clustering model is provided.
+    If both the clustering model and the labels are given, the labels are preferred.
+    @type cluster_labels: None or list of int
     @param pos_label: Positive (favorable) label (0 or 1)
     @type pos_label: int
     @param threshold: Normalized feature entropy threshold between 0 and 1
@@ -243,11 +249,15 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
     @return: Model fairness and other statistics
     @rtype: FairnessResult
     """
-    # Train clustering model
-    progress('Training clustering model ...')
+
     x = prepare(data, categ_columns=categ_columns, label_column=label_column, prediction_column=prediction_column)
-    m = model.fit(x)
-    clustering = m.labels_
+    if cluster_labels is None:
+        # Train clustering model
+        progress('Training clustering model ...')
+        m = model.fit(x)
+        clustering = m.labels_
+    else:
+        clustering = cluster_labels
 
     # Set clustering labels
     data_clustered = data.copy()
@@ -266,7 +276,7 @@ def test_model_fairness(model, data, pos_label=1, threshold=0.65, categ_columns=
         general_fairness, subgroup_fairness, priv_groups, group_sizes = \
             cluster_fairness(data, clustering, g, pos_label=pos_label)
 
-    return FairnessResult.create(general_fairness, subgroup_fairness, group_sizes, g, x, m)
+    return FairnessResult.create(general_fairness, subgroup_fairness, group_sizes, g, x, clustering)
 
 
 def benchmark_clustering(models, dataset, pos_label=1):
@@ -291,7 +301,7 @@ def benchmark_clustering(models, dataset, pos_label=1):
     best_params = None
 
     for m in models:
-        fair_res = test_model_fairness(m, dataset, pos_label=pos_label)
+        fair_res = test_model_fairness(dataset, model=m, pos_label=pos_label)
 
         if max_prod < fair_res.c_acc.mean_abs_err * fair_res.cvi.sil:
             max_error = fair_res.c_acc.mean_abs_err
@@ -311,7 +321,7 @@ def benchmark_clustering(models, dataset, pos_label=1):
 class FairnessResult:
 
     @classmethod
-    def create(cls, general_fairness, subgroup_fairness, group_sizes, g, x, m):
+    def create(cls, general_fairness, subgroup_fairness, group_sizes, g, x, cluster_labels):
         res = cls()
         res.fair = DataFrame(data={'mean': subgroup_fairness.mean().values,
                                    'std': subgroup_fairness.std().values,
@@ -344,8 +354,8 @@ class FairnessResult:
 
         # Cluster validation
         # res.model = m        # cannot be serialized easily
-        res.clustering = m.labels_
-        res.cvi = validate_clustering(x, m.labels_)
+        res.clustering = cluster_labels
+        res.cvi = validate_clustering(x, cluster_labels)
 
         # Raw data
         res.raw = subgroup_fairness

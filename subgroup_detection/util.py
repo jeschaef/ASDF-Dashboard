@@ -40,7 +40,7 @@ def _scale(data, exclude=[]):
     return data  # Min-max scaling
 
 
-def prepare(data, categ_columns=None, label_column='class', prediction_column='out', **kwargs):
+def prepare(data, categ_columns=None, label_column='class', prediction_column='out', prefix_sep='#', **kwargs):
     """
     Transform a given dataset into a numeric dataset by
         - removing the label and prediction column,
@@ -57,10 +57,13 @@ def prepare(data, categ_columns=None, label_column='class', prediction_column='o
     @type label_column: str
     @param prediction_column: Name of column with predicted class labels
     @type prediction_column: str
+    @param prefix_sep: Delimiter to use for one-hot encoding, e.g., sex = {M, F} --> sex#M = {0, 1}.
+    Should be a character or string that does not appear in any of the feature names of the dataset.
+    @type prefix_sep: str
     @return: Transformed numeric dataset
     @rtype: pd.DataFrame
     """
     data_num = data.copy().drop(labels=[label_column, prediction_column], axis=1)
-    data_num = pd.get_dummies(data_num, drop_first=True, columns=categ_columns)  # One hot encoding
+    data_num = pd.get_dummies(data_num, drop_first=True, columns=categ_columns, prefix_sep=prefix_sep)  # One-hot enc.
     data_num = _scale(data_num, **kwargs)  # Min-max scaling
     return data_num

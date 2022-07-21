@@ -77,8 +77,9 @@ def fairness_analysis(self, df_json, algorithm, pos_label=1, threshold=0.65, cat
     log.info(f"Model {model}")
 
     # Test fairness of the classification model
-    fair_res = test_model_fairness(model, data, pos_label=pos_label, threshold=threshold, categ_columns=categ_columns,
-                                   progress=progress, label_column=label_column, prediction_column=prediction_column)
+    fair_res = test_model_fairness(data, model=model, pos_label=pos_label, threshold=threshold,
+                                   categ_columns=categ_columns, progress=progress, label_column=label_column,
+                                   prediction_column=prediction_column)
 
     # Return result as json
     return fair_res.to_json()
