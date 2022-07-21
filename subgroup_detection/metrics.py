@@ -98,10 +98,11 @@ def conf_matrix(data, rules, pos_label=1):
     y_true_rest = y_true[~idx]
     y_pred_rest = y_pred[~idx]
 
+    print(y_true_group.shape, y_true_rest.shape)
     if pos_label == 1:
-        tn, fp, fn, tp = confusion_matrix(y_true_group, y_pred_group).ravel()
-        tn2, fp2, fn2, tp2 = confusion_matrix(y_true_rest, y_pred_rest).ravel()
+        tn, fp, fn, tp = confusion_matrix(y_true_group, y_pred_group, labels=[0, 1]).ravel()
+        tn2, fp2, fn2, tp2 = confusion_matrix(y_true_rest, y_pred_rest, labels=[0, 1]).ravel()
     elif pos_label == 0:
-        tp, fn, fp, tn = confusion_matrix(y_true_group, y_pred_group).ravel()
-        tp2, fn2, fp2, tn2 = confusion_matrix(y_true_rest, y_pred_rest).ravel()
+        tp, fn, fp, tn = confusion_matrix(y_true_group, y_pred_group, labels=[0, 1]).ravel()
+        tp2, fn2, fp2, tn2 = confusion_matrix(y_true_rest, y_pred_rest, labels=[0, 1]).ravel()
     return tn, fp, fn, tp, tn2, fp2, fn2, tp2
