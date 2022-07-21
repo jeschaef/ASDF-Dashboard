@@ -1,7 +1,7 @@
 import logging
 
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-from sklearn.cluster import KMeans, DBSCAN, OPTICS
+from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
 from pandas import Series, DataFrame
 from shap import KernelExplainer
@@ -26,19 +26,7 @@ def validate_clustering(X, labels):
     return Series(data={'sil': sil, 'dbi': dbi, 'chi': chi})
 
 
-def choose_model(model_cls, param_dict):
-    if model_cls is KMeans:
-        return KMeans().set_params(**param_dict)
-    elif model_cls is DBSCAN:
-        return DBSCAN().set_params(**param_dict)
-    elif model_cls is OPTICS:
-        return OPTICS().set_params(**param_dict)
-
-    log.error("Not matching")
-    return None
-
-
-def explain_clustering_shap(model, data, sample_frac=0.1):
+def explain_clustering_shap(model, data, sample_frac=0.1, min_sample_size=10):
     """
     Explain a given clustering model using SHAP.
     :param model: Clustering model.
@@ -67,6 +55,11 @@ def explain_clustering_shap(model, data, sample_frac=0.1):
         indices = (labels == c).astype(int)
         clusterX = DataFrame(data.values[indices.astype(bool)], columns=data.columns)
         samples = clusterX.sample(frac=sample_frac)
+        if len(samples) < min_sample_size:
+            if len(clusterX) <= min_sample_size:
+                samples = clusterX
+            else:
+                samples = clusterX.sample(n=min_sample_size)
 
         # Explain cluster c
         explainer = KernelExplainer(f, DataFrame(kmeans.cluster_centers_, columns=data.columns))

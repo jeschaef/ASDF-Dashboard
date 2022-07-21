@@ -12,6 +12,11 @@ log = get_task_logger(__name__)
 
 
 class FairnessTask(Task):
+    """
+    Utility class for user-bound fairness tasks (one at a time).
+    Automatically caches and uncaches the task. Also revokes
+    an already running task for this user if started again.
+    """
 
     @staticmethod
     def _cache_key(current_user):
@@ -46,7 +51,6 @@ class FairnessTask(Task):
 
     def on_success(self, retval, task_id, args, kwargs):
         log.info("On success")
-        # log.info("Uncached task")
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         log.info("On failure")

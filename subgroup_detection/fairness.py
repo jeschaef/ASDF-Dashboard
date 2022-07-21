@@ -319,6 +319,11 @@ def benchmark_clustering(models, dataset, pos_label=1):
 
 
 class FairnessResult:
+    """
+    Wrapper class for subgroup fairness analysis result with
+    enabled JSON-serializability for transfer between celery
+    worker and calling process.
+    """
 
     @classmethod
     def create(cls, general_fairness, subgroup_fairness, group_sizes, g, x, cluster_labels):
