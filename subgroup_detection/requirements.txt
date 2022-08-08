@@ -6,4 +6,3 @@ seaborn==0.11.2
 ipywidgets==7.7.0
 shap
 aif360==0.4.0
-aix360

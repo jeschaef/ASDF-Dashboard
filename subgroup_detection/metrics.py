@@ -1,6 +1,7 @@
 import operator
 from functools import reduce
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 
@@ -158,6 +159,13 @@ def containment_score(p, p_set, data):
         idx2 = patterns_to_index(data, p2)
         scores.append((idx & idx2).sum() / idx.sum())
 
-    return scores.max()
+    return np.max(scores)
 
 
+def cluster_containment_scores(cluster_patterns, data):
+    scores = {}
+    for c, p in cluster_patterns.items():
+        other_patterns = cluster_patterns.copy()
+        other_patterns.pop(c)
+        scores[c] = containment_score(p, other_patterns.values(), data)
+    return scores
