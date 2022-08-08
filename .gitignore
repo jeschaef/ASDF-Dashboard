@@ -6,3 +6,4 @@
 /instance/
 /app/conf/nginx/nginx.conf
 /data/
+/subgroup_detection/venv/

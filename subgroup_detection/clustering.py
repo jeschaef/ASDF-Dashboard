@@ -69,17 +69,17 @@ def explain_clustering_shap(model, data, sample_frac=0.1, min_sample_size=10):
     return cluster_shap
 
 
-def rules_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold=0.1, prefix_sep='#'):
+def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold=0.1, prefix_sep='#'):
     """
-    Extract rules from the SHAP explanations of the clustering model.
+    Extract patterns (rules) from the SHAP explanations of the clustering model.
     :param cluster_shap: SHAP values of each instance grouped by cluster.
     :param data: The original dataset (not preprocessed).
     :param dataX: The numerical dataset used to train the clustering model (preprocessed) without labels.
     :param labels: Clustering labels.
-    :param shap_threshold: Minimal mean SHAP value of a feature to be considered for a rule.
-    :return: Set of rules for each cluster
+    :param shap_threshold: Minimal mean SHAP value of a feature to be considered for a pattern.
+    :return: Set of patterns for each cluster
     """
-    cluster_rules = {}
+    cluster_patterns = {}
     for c in cluster_shap:
 
         # Get SHAP, mean SHAP and data instances of cluster c
@@ -89,8 +89,8 @@ def rules_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold=0.
         cluster_data = DataFrame(dataX.values[indices.astype(bool)], columns=dataX.columns)
 
         # For each feature with mean SHAP value above the shap_threshold,
-        # extract a rule of the form 'feature =/!= value'
-        rules = []
+        # extract a pattern of the form 'feature =/!= value'
+        patterns = []
         for fn in mean_shap_vals[mean_shap_vals > shap_threshold].keys():
 
             # Split the feature names according to the prefix_sep used in one-hot-encoding the data
@@ -99,7 +99,7 @@ def rules_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold=0.
             argmax = np.bincount(cluster_data[fn]).argmax()
 
             if len(split) == 1:  # not one-hot-encoded feature (not categorical)
-                rules.append((col, True, argmax))
+                patterns.append((col, True, argmax))
             elif len(split) == 2:  # one-hot-encoded feature
                 val = split[1]
 
@@ -110,15 +110,15 @@ def rules_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold=0.
                     unq = np.unique(orig_column)  # unique values for original column (e.g. sex --> [M, F])
                     if len(unq) == 2:
                         counter_val = unq[0] if unq[1] == val else unq[1]
-                        rules.append((col, True, counter_val))
+                        patterns.append((col, True, counter_val))
                     else:
-                        rules.append((col, False, val))
+                        patterns.append((col, False, val))
                 else:
-                    rules.append((col, True, val))
-        # Store rules for cluster c
-        cluster_rules[c] = rules
+                    patterns.append((col, True, val))
+        # Store patterns for cluster c
+        cluster_patterns[c] = patterns
 
-    return cluster_rules
+    return cluster_patterns
 
 
 def can_predict(model):
