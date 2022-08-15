@@ -34,9 +34,8 @@ const ranking_chart = createRankingChart()
 // Table
 const $table = $('#table-groups')
 
-// Clustering algorithm info & dataset sizes
+// Clustering algorithm info
 let clustering_info = null
-let dataset_sizes = {}
 
 
 function parseFairnessResult() {
@@ -843,14 +842,6 @@ $(function () {
         function (data) {
             clustering_info = data
             initClusteringAlgorithms()
-        }
-    )
-
-    // Get dataset sizes
-    $.getJSON(
-        dataset_sizes_url,
-        function (data) {
-            dataset_sizes = data
         }
     )
 
