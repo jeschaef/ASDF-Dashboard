@@ -5,7 +5,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
 
-from subgroup_detection.util import _dict_avg, _dict_map, _dict_min, _dict_max
+from subgroup_detection.util import _dict_avg, _dict_map, _dict_min, _dict_max, _dict_apply
+
+
+class UndefinedOperatorError(ValueError):
+    def __init__(self, op):
+        super().__init__(f"Operator '{op}' is not defined")
 
 
 def statistical_parity_difference(C):
@@ -96,7 +101,7 @@ def compute_metrics(cluster_patterns, data, pos_label=1):
     Print statistical parity, eq. opportunity and avg. odds difference for the given
     patterns of a clustering.
     
-    :param dict of (list of (str, bool, any)) cluster_patterns: List of conjunctive 
+    :param dict of (list of (str, str, Any)) cluster_patterns: List of conjunctive 
         patterns for each cluster
     :param pd.DataFrame data: The original dataset (not preprocessed) 
         incl. ground-truth ('class') and predicted ('out') labels.
@@ -119,11 +124,11 @@ def subgroups_to_cluster_patterns(subgroups):
     
     :param pd.DataFrame subgroups: Entropy-based subgroups in a DataFrame (each row is a subgroup)
     :return: Dictionary of conjunctive patterns (list of (feature, op, value)-tuples)
-    :rtype: List of (str, bool, Any)
+    :rtype: list of (str, str, Any)
     """
     cluster_patterns = {}
     for c, row in subgroups.iterrows():
-        p = [(fn, True, val) for fn, val in row.dropna().items()]
+        p = [(fn, '=', val) for fn, val in row.dropna().items()]
         cluster_patterns[c] = p
     return cluster_patterns
 
@@ -133,17 +138,23 @@ def pattern_to_index(data, p):
     Transform the patterns on the given dataset to a filter on the index (boolean array).
     
     :param pd.DataFrame data: The original dataset (not preprocessed).
-    :param list of (str, bool, Any) p: Conjunctive pattern (e.g., for a single cluster). 
+    :param list of (str, Any, Any) p: Conjunctive pattern (e.g., for a single cluster).
     :return: Filter on the index of the dataset (boolean array).
     :rtype: list of bool
     """
     conditions = []
     for pattern in p:
-        col, equals, val = pattern
-        if equals:
+        col, op, val = pattern
+        if op == '=':
             conditions.append(data[col] == val)
-        else:
+        elif op == '!=':
             conditions.append(data[col] != val)
+        elif op == '<=':
+            conditions.append(data[col] <= val)
+        elif op == '>=':
+            conditions.append(data[col] >= val)
+        else:
+            raise UndefinedOperatorError(op)
     return reduce(operator.and_, conditions)
 
 
@@ -152,7 +163,7 @@ def conf_matrix(data, p, pos_label=1):
     Get the confusion matrices of the privileged and unprivileged subgroup.
     
     :param pd.DataFrame data: Dataset with ground-truth and predicted labels
-    :param list of (str, bool, Any) p: Conjunctive pattern defining a single subgroup
+    :param list of (str, str, Any) p: Conjunctive pattern defining a single subgroup
     :param int pos_label: Label of the positive (favorable) class (0 or 1).
     :return: tn, fp, fn, tp, tn2, fp2, fn2, tp2 (privileged & unprivileged subgroup)
     :rtype: (int, int, int, int, int, int, int, int)
@@ -181,7 +192,7 @@ def pattern_support(p, data):
     Compute the support of a given conjunctive pattern, i.e., the ratio
     of instances that satisfy the pattern.
     
-    :param List of (str, bool, Any) p: Conjunctive pattern of the form 
+    :param list of (str, str, Any) p: Conjunctive pattern of the form 
         '(col op val) ^ (col2 op val2) ^ ...' where operators in the form of
         booleans are '=' (True) or '!=' (False). The conjunctive pattern is
         presented as a list of the individual attribute-value pairs.
@@ -197,16 +208,13 @@ def cluster_pattern_support(cluster_patterns, data):
     """
     Compute the support of each pattern in the dataset.
     
-    :param dict of (list of (str, bool, any)) cluster_patterns: Dict of conjunctive
+    :param dict of (list of (str, str, Any)) cluster_patterns: Dict of conjunctive
         patterns for each cluster.
     :param pd.DataFrame data: The original dataset (not preprocessed).
     :return: Support per pattern
     :rtype: dict of float
     """
-    support = {}
-    for c, p in cluster_patterns.items():
-        support[c] = pattern_support(p, data)
-    return support
+    return {c: pattern_support(p, data) for c, p in cluster_patterns.items()}
 
 
 def containment_score(p, p_list, data):
@@ -214,8 +222,8 @@ def containment_score(p, p_list, data):
     Compute the containment score of the given pattern in comparison to the
     patterns from the list.
 
-    :param list of (str, bool, Any) p: Single conjunctive pattern.
-    :param list of (list of (str, bool, Any)) p_list: List of conjunctive patterns.
+    :param list of (str, str, Any) p: Single conjunctive pattern.
+    :param list of (list of (str, str, Any)) p_list: List of conjunctive patterns.
     :param pd.DataFrame data: The original dataset (not preprocessed).
     :return: Containment score of p compared to all patterns in p_list
     :rtype: float
@@ -234,7 +242,7 @@ def cluster_containment_score(cluster_patterns, data):
     i.e., compute the containment of each of the patterns in comparison to all other
     patterns except the selected.
 
-    :param dict of (int, list of (str, bool, Any)) cluster_patterns: Dict of conjunctive
+    :param dict of (int, list of (str, str, Any)) cluster_patterns: Dict of conjunctive
         patterns for each cluster.
     :param pd.DataFrame data: The original dataset (not preprocessed).
     :return: Containment score per pattern
@@ -251,7 +259,7 @@ def cluster_containment_score(cluster_patterns, data):
 def cluster_pattern_size(cluster_patterns):
     """Compute the pattern sizes of the given patterns.
 
-    :param dict of (list of (str, bool, Any)) cluster_patterns: Dict of conjunctive
+    :param dict of (list of (str, str, Any)) cluster_patterns: Dict of conjunctive
         patterns for each cluster.
     :return: Sizes of the patterns
     :rtype: dict of float
@@ -262,7 +270,7 @@ def cluster_pattern_size(cluster_patterns):
 def average_pattern_size(cluster_patterns):
     """Compute the average pattern size over the given patterns.
 
-    :param dict of (list of (str, bool, Any)) cluster_patterns: Dict of conjunctive
+    :param dict of (list of (str, str, Any)) cluster_patterns: Dict of conjunctive
         patterns for each cluster.
     :return: Average pattern size
     :rtype: float
@@ -273,7 +281,7 @@ def average_pattern_size(cluster_patterns):
 def fidelity(p, c, data, labels):
     """Compute the fidelity of the given pattern on the given dataset.
 
-    :param list of (str, bool, Any) p: Single conjunctive pattern
+    :param list of (str, str, Any) p: Single conjunctive pattern
     :param int c: Cluster number
     :param pd.DataFrame data: The original dataset (not preprocessed).
     :param list of int labels: Cluster labels
@@ -288,7 +296,7 @@ def fidelity(p, c, data, labels):
 def cluster_fidelity(cluster_patterns, data, labels):
     """Compute the fidelity of the given dict of conjunctive patterns for each cluster.
 
-    :param dict of (list of (str, bool, Any)) cluster_patterns: Dict of conjunctive
+    :param dict of (list of (str, str, Any)) cluster_patterns: Dict of conjunctive
         patterns for each cluster.
     :param pd.DataFrame data: The original dataset (not preprocessed).
     :param list of int labels: Cluster labels
@@ -296,17 +304,46 @@ def cluster_fidelity(cluster_patterns, data, labels):
     :rtype: dict of float
     """
     # Compute the fidelity for each pattern/cluster
-    fidelities = {}
-    for c, p in cluster_patterns.items():
-        fidelities[c] = fidelity(p, c, data, labels)
-    return fidelities
+    return {c: fidelity(p, c, data, labels) for c, p in cluster_patterns.items()}
 
 
 def cluster_coverage(cluster_patterns, data):
+    """Compute the coverage of the given dict of conjunctive patterns on the dataset,
+    i.e., the fraction of instances covered by at least one pattern.
+
+    :param dict of (list of (str, str, Any)) cluster_patterns: Dict of conjunctive
+        patterns for each cluster.
+    :param pd.DataFrame data: The original dataset (not preprocessed).
+    :return: Coverage of the patterns on the dataset
+    :rtype: float
+    """
     idx = [False] * len(data)
     for c, p in cluster_patterns.items():
         idx = idx | pattern_to_index(data, p)       # concatenate all index lists with logical or
     return idx.sum() / len(data)        # ratio of instances affected by a pattern
+
+
+def pattern_jaccard(p1, p2):
+    """Given two conjunctive patterns p1 and p2 compute their Jaccard similarity:
+
+    .. math::
+        |p_1 \cap p_2| / |p_1 \cup p_2|
+
+    :param list of (str, str, Any) p1: Conjunctive pattern.
+    :param list of (str, str, Any) p2: Conjunctive pattern.
+    :return: Jaccard similarity of the two patterns
+    :rtype: float
+    """
+    return len(list(set(p1) & set(p2))) / len(list(set(p1) | set(p2)))
+
+
+def cluster_pattern_jaccard(cluster_patterns_1, cluster_patterns_2):
+    return {c: pattern_jaccard(p1, p2)
+            for (c, p1), (_, p2) in zip(cluster_patterns_1.items(), cluster_patterns_2.items())}
+
+
+def cluster_pattern_avg_jaccard(cluster_patterns_1, cluster_patterns_2):
+    return _dict_avg(cluster_pattern_jaccard(cluster_patterns_1, cluster_patterns_2))
 
 
 def print_pattern_metrics(cluster_patterns, data, labels):

@@ -85,8 +85,8 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
         # Get SHAP, mean SHAP and data instances of cluster c
         shap_vals = cluster_shap[c]
         mean_shap_vals = shap_vals.mean()
-        indices = (labels == c).astype(int)
-        cluster_data = DataFrame(dataX.values[indices.astype(bool)], columns=dataX.columns)
+        cdata = data[labels == c]
+        cluster_data = DataFrame(dataX.values[labels == c], columns=dataX.columns)
 
         # For each feature with mean SHAP value above the shap_threshold,
         # extract a pattern of the form 'feature =/!= value'
@@ -96,12 +96,27 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
             # Split the feature names according to the prefix_sep used in one-hot-encoding the data
             split = fn.split(prefix_sep, maxsplit=1)
             col = split[0]
-            argmax = np.bincount(cluster_data[fn]).argmax()
 
             if len(split) == 1:  # not one-hot-encoded feature (not categorical)
-                patterns.append((col, True, argmax))
+                args, _ = np.unique(cdata[fn], return_counts=True)
+                min_val, max_val = args[0], args[-1]
+                min_global, max_global = data[fn].min(), data[fn].max()
+
+                # Define range constraint
+                if min_val == max_val:
+                    patterns.append((col, '=', val))
+                elif min_val == min_global and max_val == max_global:
+                    pass   # no pattern added as it would be true for any value
+                elif min_val == min_global:
+                    patterns.append((col, '<=', max_val))
+                elif max_val == max_global:
+                    patterns.append((col, '>=', min_val))
+                else:
+                    patterns.append((col, '>=', min_val))
+                    patterns.append((col, '<=', max_val))
             elif len(split) == 2:  # one-hot-encoded feature
                 val = split[1]
+                argmax = np.bincount(cluster_data[fn]).argmax()
 
                 # If the one-hot-encoded feature is binary and the condition negated,
                 # find the counter part (e.g. sex#M==0 --> sex != M --> sex=F).
@@ -110,11 +125,11 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
                     unq = np.unique(orig_column)  # unique values for original column (e.g. sex --> [M, F])
                     if len(unq) == 2:
                         counter_val = unq[0] if unq[1] == val else unq[1]
-                        patterns.append((col, True, counter_val))
+                        patterns.append((col, '=', counter_val))
                     else:
-                        patterns.append((col, False, val))
+                        patterns.append((col, '!=', val))
                 else:
-                    patterns.append((col, True, val))
+                    patterns.append((col, '=', val))
         # Store patterns for cluster c
         cluster_patterns[c] = patterns
 
