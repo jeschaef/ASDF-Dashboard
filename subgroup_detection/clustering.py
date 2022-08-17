@@ -31,6 +31,9 @@ def explain_clustering_shap(model, data, sample_frac=0.1, min_sample_size=10):
     Explain a given clustering model using SHAP.
     :param model: Clustering model.
     :param data: The numerical dataset used to train the clustering model (preprocessed) without labels.
+    :param sample_frac: Fraction of instances of a cluster to sample for explanation of the clustering
+    :param min_sample_size: Minimal number of instances (if possible) to sample from a cluster for
+        clustering explanation.
     :return: SHAP values for each instance grouped by cluster
     """
     cluster_shap = {}
