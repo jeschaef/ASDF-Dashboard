@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
@@ -101,13 +102,13 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
             col = split[0]
 
             if len(split) == 1:  # not one-hot-encoded feature (not categorical)
-                args, _ = np.unique(cdata[fn], return_counts=True)
+                args, _ = np.unique(cdata[col], return_counts=True)
                 min_val, max_val = args[0], args[-1]
-                min_global, max_global = data[fn].min(), data[fn].max()
+                min_global, max_global = data[col].min(), data[col].max()
 
                 # Define range constraint
                 if min_val == max_val:
-                    patterns.append((col, '=', val))
+                    patterns.append((col, '=', min_val))
                 elif min_val == min_global and max_val == max_global:
                     pass   # no pattern added as it would be true for any value
                 elif min_val == min_global:
@@ -118,14 +119,13 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
                     patterns.append((col, '>=', min_val))
                     patterns.append((col, '<=', max_val))
             elif len(split) == 2:  # one-hot-encoded feature
-                val = split[1]
-                argmax = np.bincount(cluster_data[fn]).argmax()
+                val = pd.Series(data=split[1]).astype(cdata[col].dtype).iloc[0]  # parse split[1] (str) to original type
+                argmax = np.bincount(cluster_data[fn]).argmax()     # argmax is 0 or 1 (False or True)
 
-                # If the one-hot-encoded feature is binary and the condition negated,
+                # If the one-hot-encoded feature is binary and the condition negated (argmax=0),
                 # find the counter part (e.g. sex#M==0 --> sex != M --> sex=F).
                 if argmax == 0:
-                    orig_column = data.filter(like=col)
-                    unq = np.unique(orig_column)  # unique values for original column (e.g. sex --> [M, F])
+                    unq = np.unique(data[col])  # unique values for original column (e.g. sex --> [M, F])
                     if len(unq) == 2:
                         counter_val = unq[0] if unq[1] == val else unq[1]
                         patterns.append((col, '=', counter_val))
