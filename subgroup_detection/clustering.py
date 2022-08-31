@@ -1,6 +1,7 @@
 import logging
 
 import pandas as pd
+from lime.lime_tabular import LimeTabularExplainer
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier
@@ -55,15 +56,12 @@ def explain_clustering_shap(model, data, sample_frac=0.1, min_sample_size=10):
             knn = KNeighborsClassifier(n_neighbors=7, weights='distance').fit(data, labels)
             f = lambda X: (knn.predict(X) == c).astype(int)
 
-        # Get instances of cluster c
-        indices = (labels == c).astype(int)
-        clusterX = DataFrame(data.values[indices.astype(bool)], columns=data.columns)
-        samples = clusterX.sample(frac=sample_frac)
-        if len(samples) < min_sample_size:
-            if len(clusterX) <= min_sample_size:
-                samples = clusterX
-            else:
-                samples = clusterX.sample(n=min_sample_size)
+        # Sample instances of cluster c
+        samples = sample_cluster(data,
+                                 labels,
+                                 c,
+                                 sample_frac=sample_frac,
+                                 min_sample_size=min_sample_size)
 
         # Explain cluster c
         explainer = KernelExplainer(f, DataFrame(kmeans.cluster_centers_, columns=data.columns))
@@ -139,6 +137,83 @@ def patterns_from_cluster_shap(cluster_shap, data, dataX, labels, shap_threshold
     return cluster_patterns
 
 
+def explain_clustering_lime(model, data, sample_frac=0.01, min_sample_size=5, prefix_sep='#'):
+    n_feat = len(data.columns)
+    labels = model.labels_
+    n_clusters = labels.max() + 1
+    cat_feat = [i for i, col in enumerate(data.columns) if prefix_sep in col]
+    explainer = LimeTabularExplainer(data.values,
+                                     feature_names=data.columns,
+                                     discretize_continuous=True,
+                                     categorical_features=cat_feat)
+
+    cluster_lime = {}
+    for c in range(0, n_clusters):
+        # Get data of cluster c
+        indices = (labels == c).astype(int)
+        cdata = pd.DataFrame(data.values[indices.astype(bool)], columns=data.columns)
+        samples = sample_cluster(data,
+                                 labels,
+                                 c,
+                                 sample_frac=sample_frac,
+                                 min_sample_size=min_sample_size)
+
+        # If the model is able to predict inputs, use this for LimeTabularExplainer
+        # Otherwise, train a k-NN model to predict cluster membership
+        # Predict probability for class 1 (=[0,1]) or 0 (=[1,0])
+        if can_predict(model):
+            f = lambda X: np.array([[0, 1] if b else [1, 0] for b in model.predict(X) == c])    # one-vs-rest
+        else:
+            knn = KNeighborsClassifier(n_neighbors=7, weights='distance').fit(data, labels)
+            f = lambda X: np.array([[0, 1] if b else [1, 0] for b in knn.predict(X) == c])
+
+        # Explain sample instances of cluster c
+        lime = np.zeros(n_feat)
+        exps = []
+        for _, row in samples.iterrows():
+            exp = explainer.explain_instance(row, f)
+            print(exp.as_list())
+            for i, v in exp.local_exp[1]:
+                lime[i] += v
+            exps.append(exp)
+        lime = lime / len(samples)
+        print(lime, np.where(lime > 0.1))
+        idx = np.where(lime > 0.1)
+        print(cdata.columns[idx])
+        for col in cdata.columns[idx].values:
+            print(col, np.unique(cdata[col], return_counts=True))
+        cluster_lime[c] = lime
+
+    return cluster_lime
+
+
+def patterns_from_cluster_lime(cluster_lime, data, dataX, labels, lime_threshold=0.01, prefix_sep='#'):
+    cluster_patterns = {}
+    for c in cluster_lime:
+        lime = cluster_lime[c]
+        cdata = data[labels == c]
+        cdataX = DataFrame(dataX.values[labels == c], columns=dataX.columns)
+
+        patterns = []
+        # for ... :
+        #
+        #
+        # cluster_patterns[c] = ...
+    return cluster_patterns
+
+
 def can_predict(model):
     predict_op = getattr(model, "predict", None)
     return callable(predict_op)
+
+
+def sample_cluster(data, labels, c, sample_frac=0.1, min_sample_size=10):
+    indices = (labels == c).astype(int)
+    cdata = DataFrame(data.values[indices.astype(bool)], columns=data.columns)
+    samples = cdata.sample(frac=sample_frac)
+    if len(samples) < min_sample_size:
+        if len(cdata) <= min_sample_size:
+            samples = cdata
+        else:
+            samples = cdata.sample(n=min_sample_size)
+    return samples
