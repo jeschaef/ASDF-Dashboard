@@ -22,7 +22,7 @@ service. The ASDF-Dashboard can also be self-hosted. The installation and deploy
 instructions for the self-hosted setup are given below. 
 
 For further information on the scientific details and the experimental
-results see our paper [ADBIS '22 paper: Clustering-based Subgroup 
+results see our [ADBIS '22 paper: Clustering-based Subgroup 
 Detection for Automated Fairness Analysis](https://link.springer.com/chapter/10.1007/978-3-031-15743-1_5) (DOI: [10.1007/978-3-031-15743-1_5](https://doi.org/10.1007/978-3-031-15743-1_5)).
 
 ## Self-hosted setup
