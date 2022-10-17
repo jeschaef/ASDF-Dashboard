@@ -1,3 +1,4 @@
+import logging
 from email.mime.image import MIMEImage
 from os import getenv
 
@@ -7,6 +8,7 @@ from flask_mailman import Mail, EmailMessage
 from app.util import get_project_root
 
 mail = Mail()
+log = logging.getLogger()
 
 
 def send_confirmation_mail(name, recipient, confirmation_url):
@@ -26,3 +28,5 @@ def send_confirmation_mail(name, recipient, confirmation_url):
         msg.attach(msg_logo)
 
     msg.send()
+    log.info(f"Sent confirmation email to {recipient}")
+    
