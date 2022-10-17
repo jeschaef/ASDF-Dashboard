@@ -29,4 +29,3 @@ def send_confirmation_mail(name, recipient, confirmation_url):
 
     msg.send()
     log.info(f"Sent confirmation email to {recipient}")
-    
