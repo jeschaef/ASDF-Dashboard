@@ -54,6 +54,8 @@ MAIL_SENDER=<sender_email_address>
 
 # General
 COMPOSE_PROJECT_NAME=asdf-dashboard
+SECRET_KEY=<some_secret_key>
+SALT=<some_salt>
 
 # Docker
 DOCKER_RESTART_POLICY=unless-stopped

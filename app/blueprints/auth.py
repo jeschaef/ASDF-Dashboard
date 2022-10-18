@@ -134,3 +134,5 @@ def logout():
     logout_user()
     log.debug(f"Logged out user successfully")
     return redirect(redirect_url())
+
+# TODO forgot password

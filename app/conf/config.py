@@ -3,7 +3,7 @@ from os import getenv
 class BaseConfig:
     TESTING = False
     DEBUG = False
-    SECRET_KEY = 'dev'  # TODO setup appropriate secret & salt
+    SECRET_KEY = 'dev'
     SALT = 'pepper'
     # SERVER_NAME = getenv('SERVER_NAME', '127.0.0.1:5000')
 

@@ -101,6 +101,7 @@ def create_app(configuration=ProductionConfig()):
     # Celery
     celery_app.conf.update(app.config)
     log.debug('Created app')
+    print(f"{app.config}")
 
     return app
 
