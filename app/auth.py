@@ -55,7 +55,7 @@ def verify_password(plain_text_password: str or bytes, hashed_password: str or b
     return bcrypt.checkpw(plain_text_password, hashed_password)
 
 
-def generate_confirmation_token(email, secret_key, salt):
+def generate_token(email, secret_key, salt):
     serializer = URLSafeTimedSerializer(secret_key)
     return serializer.dumps(email, salt=salt)
 

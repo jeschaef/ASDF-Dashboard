@@ -236,3 +236,31 @@ class PasswordConfirmationForm(RedirectForm):
         user = User.query.get(self.owner)
         if not verify_password(field.data, user.password):
             raise ValidationError('Invalid password')
+
+
+class ForgotPasswordForm(RedirectForm):
+    email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
+    submit = SubmitField('Send email')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def validate_email(self, field):
+        # Check if an account with this email exists
+        user = User.query.filter_by(email=field.data).first()
+        if not user:
+            raise ValidationError("Email not registered")
+
+
+class ResetPasswordForm(RedirectForm):
+    password = PasswordField('New password', validators=[DataRequired(),
+                                                             Length(min=MIN_PASSWORD_LENGTH, max=PASSWORD_LENGTH)])
+    confirm = PasswordField('Verify new password', validators=[DataRequired(),
+                                                               EqualTo('password', message='Passwords must match')])
+    submit = SubmitField('Confirm')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def validate_password(self, field):
+        _check_password(field.data)

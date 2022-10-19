@@ -6,11 +6,11 @@ from flask import Blueprint, render_template, flash, redirect, url_for, current_
 from flask_login import login_user, login_required, logout_user, current_user
 from itsdangerous import SignatureExpired, BadSignature
 
-from app.auth import get_hashed_password, generate_confirmation_token, confirm_token
-from app.blueprints.forms import RegisterForm, LoginForm
+from app.auth import get_hashed_password, generate_token, confirm_token
+from app.blueprints.forms import RegisterForm, LoginForm, ForgotPasswordForm, ResetPasswordForm
 from app.blueprints.util import redirect_url
 from app.db import db
-from app.mail import send_confirmation_mail
+from app.mail import send_confirmation_mail, send_password_reset_mail
 from app.model import User
 
 auth = Blueprint('auth', __name__)
@@ -52,7 +52,7 @@ def register():
         log.debug(f"Added {user} to database")
 
         # Send confirmation link via email
-        token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
+        token = generate_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
         confirmation_url = url_for('auth.confirm_email', token=token, _external=True)
         send_confirmation_mail(name, email, confirmation_url)
 
@@ -107,7 +107,7 @@ def resend_confirmation():
     email = current_user.email
 
     # Send confirmation link via email
-    token = generate_confirmation_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
+    token = generate_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
     confirmation_url = url_for('auth.confirm_email', token=token)
     send_confirmation_mail(name, email, confirmation_url)
     return redirect(redirect_url('auth.unconfirmed'))
@@ -135,4 +135,50 @@ def logout():
     log.debug(f"Logged out user successfully")
     return redirect(redirect_url())
 
-# TODO forgot password
+
+@auth.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = User.query.filter_by(email=email).first_or_404()
+
+        # Generate a token
+        token = generate_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
+        reset_url = url_for('auth.reset_password', token=token)
+        send_password_reset_mail(user.name, email, reset_url)
+
+        # Inform user about
+        info_modal_title = "Password reset"
+        info_modal_body = "An email with a link to reset your password has been send."
+        return redirect(url_for('auth.login', info_modal_title=info_modal_title, info_modal_body=info_modal_body))
+
+    return render_template('auth/forgot_password.html', form=form)
+
+
+@auth.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    # Confirm the token (might be faulty or expired)
+    email = None
+    try:
+        email = confirm_token(token, current_app.config['SECRET_KEY'], current_app.config['SALT'])
+    except SignatureExpired as e:
+        log.error(e)
+    except BadSignature as e:
+        log.error(e)
+
+    if not email:
+        pass  # TODO error occured
+
+    user = User.query.filter_by(email=email).first_or_404()
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        # update password for user
+        user.password = get_hashed_password(form.password.data)
+        db.session.commit()
+
+        info_modal_title = "Password reset"
+        info_modal_body = "Your password has been reset."
+        return redirect(url_for('auth.login', info_modal_body=info_modal_body, info_modal_title=info_modal_title))
+
+    return render_template('auth/reset_password.html', form=form)
