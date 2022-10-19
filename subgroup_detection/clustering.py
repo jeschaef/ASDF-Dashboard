@@ -168,20 +168,20 @@ def explain_clustering_lime(model, data, sample_frac=0.01, min_sample_size=5, pr
             f = lambda X: np.array([[0, 1] if b else [1, 0] for b in knn.predict(X) == c])
 
         # Explain sample instances of cluster c
-        lime = np.zeros(n_feat)
+        lime = {}
         exps = []
         for _, row in samples.iterrows():
             exp = explainer.explain_instance(row, f)
             print(exp.as_list())
-            for i, v in exp.local_exp[1]:
-                lime[i] += v
+            for k, v in exp.as_list:
+                lime[k] += v
             exps.append(exp)
-        lime = lime / len(samples)
-        print(lime, np.where(lime > 0.1))
-        idx = np.where(lime > 0.1)
-        print(cdata.columns[idx])
-        for col in cdata.columns[idx].values:
-            print(col, np.unique(cdata[col], return_counts=True))
+        # lime = lime / len(samples)
+        print(lime)#, np.where(lime > 0.1))
+        # idx = np.where(lime > 0.1)
+        # print(cdata.columns[idx])
+        # for col in cdata.columns[idx].values:
+        #     print(col, np.unique(cdata[col], return_counts=True))
         cluster_lime[c] = lime
 
     return cluster_lime
@@ -195,8 +195,18 @@ def patterns_from_cluster_lime(cluster_lime, data, dataX, labels, lime_threshold
         cdataX = DataFrame(dataX.values[labels == c], columns=dataX.columns)
 
         patterns = []
-        # for ... :
-        #
+        idx = np.where(lime >= lime_threshold)
+        for fn in cdataX.columns[idx].values:
+
+            # Split the feature names according to the prefix_sep used in one-hot-encoding the data
+            split = fn.split(prefix_sep, maxsplit=1)
+            col = split[0]
+
+            if len(split) == 1:
+                pass
+            elif len(split) == 2:
+                print(col, split[1], np.unique(cdata[col], return_counts=True))
+
         #
         # cluster_patterns[c] = ...
     return cluster_patterns
