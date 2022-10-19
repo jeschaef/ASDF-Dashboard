@@ -108,7 +108,7 @@ def resend_confirmation():
 
     # Send confirmation link via email
     token = generate_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
-    confirmation_url = url_for('auth.confirm_email', token=token)
+    confirmation_url = url_for('auth.confirm_email', token=token, _external=True)
     send_confirmation_mail(name, email, confirmation_url)
     return redirect(redirect_url('auth.unconfirmed'))
 
