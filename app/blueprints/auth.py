@@ -145,7 +145,7 @@ def forgot_password():
 
         # Generate a token
         token = generate_token(email, current_app.config['SECRET_KEY'], current_app.config['SALT'])
-        reset_url = url_for('auth.reset_password', token=token)
+        reset_url = url_for('auth.reset_password', token=token, _external=True)
         send_password_reset_mail(user.name, email, reset_url)
 
         # Inform user about
