@@ -5,7 +5,9 @@ from distutils.util import strtobool
 
 from dotenv import load_dotenv
 from flask import Flask
+from werkzeug.exceptions import NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 from app.auth import login_mngr
 from app.blueprints.auth import auth as auth_blueprint
@@ -65,6 +67,12 @@ def create_app(configuration=ProductionConfig()):
     # ProxyFix
     if isinstance(configuration, ProductionConfig):
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1, x_port=1)
+
+    # Dispatcher middleware (debug)
+    if isinstance(configuration, DevConfig):
+        if configuration.APP_URL_PREFIX and configuration.APP_URL_PREFIX != '':
+            app.wsgi_app = DispatcherMiddleware(NotFound(),
+                                                {configuration.APP_URL_PREFIX: app.wsgi_app})
 
     # Config
     app.config.from_object(configuration)
