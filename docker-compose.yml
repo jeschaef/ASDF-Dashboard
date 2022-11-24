@@ -58,7 +58,7 @@ services:
     env_file:
       - ".env"
     ports:
-      - "${NGINX_PORT}:${NGINX_PORT}"
+      - "${NGINX_PORT}:80"
     depends_on:
       - web
     volumes:
@@ -66,3 +66,8 @@ services:
 
 volumes:
   redis: { }
+
+networks:
+  default:
+    external: true
+    name: proxy_nw
