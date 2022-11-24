@@ -112,6 +112,13 @@ The number of worker processes (`worker_processes`) can also be
 increased. It is not recommended to change other values from the
 [nginx configuration template](app/conf/nginx/nginx-template.conf).
 
+#### Deployment under a url prefix
+
+If you want to deploy the ASDF-Dashboard app under an url prefix (e.g., `/asdf`),
+use the [nginx configuration template with an url prefix](app/conf/nginx/nginx-template-url-prefix.conf)
+as template for the generation of the nginx configuration file.
+Also, set the `APPLICATION_ROOT` variable in the [config.py](app/conf/config.py) accordingly.
+
 ### Update footer
 
 Update the [`footer.html`](app/templates/footer.html) accordingly to tell the
