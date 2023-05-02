@@ -173,7 +173,7 @@ From the project root execute
 
 Note: The command line parameter `-P` has to be set to `solo` on windows machines.
 
-`celery -A app.celery_app worker -P solo -l in`
+`celery -A app.celery_app worker -P solo -l info`
 
 #### Flask Application
 
