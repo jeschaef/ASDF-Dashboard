@@ -32,10 +32,14 @@ def start_fairness_task():
     if not categ_columns:  # If not provided, set to None
         categ_columns = None
 
-    algorithm = request.form.get("algorithm")
+    algorithm = request.form.get("algorithm", type=str)
     parameters = request.form.getlist("parameters[]")
     values = request.form.getlist("values[]")
     estimate_k = request.form.get("estimate_k")
+    if estimate_k == "true":
+        estimate_k = True
+    else:
+        estimate_k = False
     param_dict = get_param_dict(algorithm, parameters, values)
     log.debug(f"{param_dict}")
 
