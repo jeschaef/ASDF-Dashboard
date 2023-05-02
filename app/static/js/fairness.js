@@ -2,7 +2,7 @@ const $status = $('#task-status')               // Task status alert
 const $area = $('#chart-area')                  // Div parent container of charts/tables with results
 const $submit = $('#task-submit')               // Submit button (note: does not submit form)
 const $auto_submit = $('#task-auto-submit')     // Submit button (automatic fairness evaluation)
-const $dataset = $("#dataset-select")           // Dataset selection
+const $dataset = $("#dataset-select")           // Dataset selectpicker
 const $switch = $('#switch')                    // Positive class switch (0/1)
 const $slider = $('#threshold')                 // Entropy threshold (0 <= t <= 1)
 const $categoricals = $('#select-categ')        // Categorical column selectpicker (multiselect)
