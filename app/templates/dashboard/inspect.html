@@ -44,7 +44,11 @@
     <tr>
         <!-- Column names -->
         {% for cname, dtype in columns.items() %}
-        <th data-field="{{cname}}" data-sortable="true" data-filter-control="input">{{cname}}</th>
+            {% if dtype == "object"%}
+            <th data-field="{{cname}}" data-sortable="true" data-filter-control="select">{{cname}}</th>
+            {% else %}
+            <th data-field="{{cname}}" data-sortable="true" data-filter-control="input">{{cname}}</th>
+            {% endif %}
         {% endfor %}
     </tr>
     </thead>
