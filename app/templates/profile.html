@@ -5,7 +5,6 @@
 
 {% block styles %}
 {{ super() }}
-<link href="{{ url_for('static', filename='css/profile.css') }}" rel="stylesheet">
 <style>
     .column {
         height: 100%;
@@ -76,7 +75,6 @@
                                     </p>
                                     <form method="POST" id="form-del-datasets"
                                           action="{{ url_for('main.delete_datasets') }}">
-                                        {{ con_form_dataset.csrf_token() }}
                                         <div class="form-floating w-75 ms-auto me-auto">
                                             {{ render_field(con_form_dataset.password, con_form_dataset.is_submitted(),
                                             class='form-floating') }}
@@ -122,7 +120,6 @@
                                     </p>
                                     <form method="POST" id="form-del-account"
                                           action="{{ url_for('main.delete_account') }}">
-                                        {{ con_form_account.csrf_token() }}
                                         <div class="form-floating w-75 ms-auto me-auto">
                                             {{ render_field(con_form_account.password, con_form_account.is_submitted(),
                                             class='form-floating') }}
