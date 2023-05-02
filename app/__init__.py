@@ -1,15 +1,17 @@
 import logging
 import logging.config
 import os
+from datetime import datetime
 from distutils.util import strtobool
 
 from dotenv import load_dotenv
 from flask import Flask
+from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-from app.auth import login_mngr
+from app.auth import login_mngr, get_hashed_password
 from app.blueprints.auth import auth as auth_blueprint
 from app.blueprints.dashboard import dashboard as dashboard_blueprint
 from app.blueprints.main import main as main_blueprint
@@ -18,6 +20,7 @@ from app.cache import cache
 from app.conf.config import ProductionConfig, DevConfig
 from app.db import db
 from app.mail import mail
+from app.model import User
 from app.util import ensure_exists_folder
 
 from app.celery_app import celery_app
@@ -47,10 +50,24 @@ def register_blueprints(app):
 
 
 def setup_db(app):
-    if bool(strtobool(os.getenv("DATABASE_DROP_ALL", 'false'))):
-        db.drop_all(app=app)
-    db.create_all(app=app)  # create db
-    app.logger.debug("Setup db")
+    with app.app_context():
+        if bool(strtobool(os.getenv("DATABASE_DROP_ALL", 'false'))):
+            db.drop_all()
+        db.create_all()  # create db
+        app.logger.debug("Setup db")
+
+
+def create_test_user(app):
+    with app.app_context():
+        user = User(email="",
+                    name="test",
+                    password=get_hashed_password("test"),
+                    confirmed=datetime.now())
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError:
+            app.logger.debug("User test already existed")
 
 
 def create_app(configuration=ProductionConfig()):
@@ -109,11 +126,12 @@ def create_app(configuration=ProductionConfig()):
     # Celery
     celery_app.conf.update(app.config)
     log.debug('Created app')
-    print(f"{app.config}")
+    log.debug(f"App Config: {app.config}")
 
     return app
 
 
 if __name__ == '__main__':
     app = create_app(configuration=DevConfig())
+    create_test_user(app)
     app.run(debug=True)

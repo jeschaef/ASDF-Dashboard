@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
 
 def label_data(data, labels, remove_outliers=False):
     """Label the given dataset with clustering labels.
@@ -30,7 +32,7 @@ def _scale(data, exclude=[]):
     if exclude:
         dc = data.copy()
 
-    data = (data - data.min()) / (data.max() - data.min())
+    data = MinMaxScaler().fit_transform(data)
 
     if exclude:
         data[exclude] = dc[exclude]
