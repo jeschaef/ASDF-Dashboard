@@ -68,6 +68,7 @@ def create_test_user(app):
             db.session.commit()
         except IntegrityError:
             app.logger.debug("User test already existed")
+        app.logger.debug("Added test user successfully")
 
 
 def create_app(configuration=ProductionConfig()):
@@ -127,6 +128,10 @@ def create_app(configuration=ProductionConfig()):
     celery_app.conf.update(app.config)
     log.debug('Created app')
     log.debug(f"App Config: {app.config}")
+
+    # Test user
+    if bool(strtobool(os.getenv("CREATE_TEST_USER", 'false'))):
+        create_test_user(app)
 
     return app
 
