@@ -485,6 +485,17 @@ function updateProgress(status_url) {
 }
 
 
+function getMax(arr) {
+    let len = arr.length;
+    let max = -Infinity;
+
+    while (len--) {
+        max = arr[len] > max ? arr[len] : max;
+    }
+    return max;
+}
+
+
 function displayResult() {
     console.log("Finished:", result)
 
@@ -495,7 +506,7 @@ function displayResult() {
     updateFairChart()
 
     // Plot clustering/entropy-based groups data
-    const k = Math.max(...result.clustering) + 1
+    const k = getMax(result.clustering) + 1
     updateGroupChart(k)
 
     // Plot subgroup fairness for initial selection (cluster/subgroup 0)
