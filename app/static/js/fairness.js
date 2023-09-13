@@ -533,7 +533,7 @@ function displayResult() {
 
 
 function countValues(arr) {
-    const k = Math.max(...arr) + 1
+    const k = getMax(arr) + 1
     const counts = new Array(k).fill(0)     // TODO outliers
     for (const e of arr)
         counts[e] = counts[e] + 1
