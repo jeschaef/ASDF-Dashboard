@@ -19,7 +19,10 @@ RUN pip install gunicorn
 
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 
-COPY . .
+COPY ./app/ app/
+COPY ./subgroup_detection/ subgroup_detection/
+COPY ./.env .env
+
 
 #RUN pip install --editable .
 

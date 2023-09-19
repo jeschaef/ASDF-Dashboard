@@ -63,6 +63,7 @@ def create_test_user(app):
                     name="test",
                     password=get_hashed_password("test"),
                     confirmed=datetime.now())
+
         try:
             db.session.add(user)
             db.session.commit()

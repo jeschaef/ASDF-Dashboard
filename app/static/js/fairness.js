@@ -37,6 +37,10 @@ const $table = $('#table-groups')
 // Clustering algorithm info
 let clustering_info = null
 
+// Export charts to pdfs
+window.jsPDF = window.jspdf.jsPDF
+const $export_fair_chart = $('#chart-fair-export')
+
 
 function parseFairnessResult() {
     // General fairness data
@@ -81,7 +85,7 @@ function createFairChart() {
         'Equal Opportunity',
         'Equalized odds',
         'Accuracy',
-    ];
+    ]
 
     // Define datasets (empty)
     const datasets = {
@@ -101,7 +105,7 @@ function createFairChart() {
             pointHoverBorderColor: 'rgb(54, 162, 235)',
             data: [],
         }]
-    };
+    }
 
     // Chart config
     const config = {
@@ -129,7 +133,7 @@ function createFairChart() {
             },
             maintainAspectRatio: false,
         }
-    };
+    }
 
     // Create chart
     return new Chart(
@@ -144,7 +148,7 @@ function updateFairChart() {
     fair_chart.data.datasets[0].data = c_data
     fair_chart.data.datasets[1].data = g_data
     setChartHeight(fair_chart)
-    fair_chart.update();
+    fair_chart.update()
 }
 
 
@@ -170,7 +174,7 @@ function createGroupChart() {
             data: [],
             skipNull: true,     // duplicates are omitted
         }]
-    };
+    }
 
     // Chart config
     const config = {
@@ -201,7 +205,7 @@ function createGroupChart() {
                 }
             }
         }
-    };
+    }
 
     // Create chart
     return new Chart(
@@ -228,7 +232,7 @@ function updateGroupChart(k) {
     const extra = 200
     const width = k * barpx + extra
     setChartHeight(group_chart)
-    group_chart.canvas.parentNode.style.width = width + 'px';
+    group_chart.canvas.parentNode.style.width = width + 'px'
 
     group_chart.update()
 
@@ -241,7 +245,7 @@ function createSelectionChart() {
         'Equal Opportunity',
         'Equalized odds',
         'Accuracy',
-    ];
+    ]
 
     // Define datasets (empty)
     const datasets = {
@@ -261,7 +265,7 @@ function createSelectionChart() {
             borderRadius: 1,
             data: []
         }]
-    };
+    }
 
     // Chart config
     const config = {
@@ -279,7 +283,7 @@ function createSelectionChart() {
             },
             maintainAspectRatio: false,
         }
-    };
+    }
 
     // Create chart
     return new Chart(
@@ -296,12 +300,12 @@ function updateSelectionChart(index) {
     select_chart.options.plugins.title.text =
         "Subgroup fairness metrics for cluster/entropy-based subgroup " + index
     setChartHeight(select_chart)
-    select_chart.update();
+    select_chart.update()
 }
 
 
 function createRankingChart() {
-    const labels = [1, 2, 3, 4, 5];
+    const labels = [1, 2, 3, 4, 5]
 
     // Define datasets (empty)
     const datasets = {
@@ -314,7 +318,7 @@ function createRankingChart() {
             borderRadius: 1,
             data: [],
         }]
-    };
+    }
 
     // Chart config
     const config = {
@@ -332,12 +336,12 @@ function createRankingChart() {
             },
             maintainAspectRatio: false,
         }
-    };
+    }
 
     return new Chart(
         document.getElementById('chart-ranking'),
         config
-    );
+    )
 }
 
 
@@ -379,14 +383,14 @@ function sortData(data, ascending = true, top = 5) {
 
 function clearChart(chart) {
     chart.data.datasets.forEach((dataset) => {
-        dataset.data.pop();
-    });
-    chart.update();
+        dataset.data.pop()
+    })
+    chart.update()
 }
 
 
 function setChartHeight(chart, height = 500) {
-    chart.canvas.parentNode.style.height = height + 'px';
+    chart.canvas.parentNode.style.height = height + 'px'
 }
 
 
@@ -416,11 +420,11 @@ function startFairnessTask(is_manual) {
     let algorithm, parameters, values, estimate_k
 
     if (is_manual) {
-        algorithm = $algorithm.val();
+        algorithm = $algorithm.val()
         [parameters, values] = getClusteringParameters(algorithm)
         estimate_k = false
     } else {
-        algorithm = 'agglomerative';
+        algorithm = 'agglomerative'
         parameters = ['linkage']
         values = ['single']
         estimate_k = true
@@ -440,8 +444,8 @@ function startFairnessTask(is_manual) {
     // Send POST request to start the task (as json)
     $.post(start_task_url, data,
         function (data, status, request) {
-            const status_url = request.getResponseHeader('status');
-            updateProgress(status_url);
+            const status_url = request.getResponseHeader('status')
+            updateProgress(status_url)
         }
     ).done(function () {
         // alert('Done!')
@@ -486,13 +490,13 @@ function updateProgress(status_url) {
 
 
 function getMax(arr) {
-    let len = arr.length;
-    let max = -Infinity;
+    let len = arr.length
+    let max = -Infinity
 
     while (len--) {
-        max = arr[len] > max ? arr[len] : max;
+        max = arr[len] > max ? arr[len] : max
     }
-    return max;
+    return max
 }
 
 
@@ -791,6 +795,18 @@ function highlightSubgroup(evt, source_chart, needs_sort = false) {
 }
 
 
+function exportChart(params) {
+    const chartElement = params.data.chart
+    console.log(chartElement)
+    const image = chartElement.toDataURL('image/png', 1.0)
+
+    const pdf = new jsPDF('landscape', 'px', chartElement.width(), chartElement.height())
+    const dimensions = params.data.dimensions
+    pdf.addImage(image, 'PNG', chartElement.width, chartElement.height)
+    pdf.save('chart.pdf')
+}
+
+
 $(function () {
 
     // Add button functionality (submit task)
@@ -803,14 +819,14 @@ $(function () {
 
     // Update switch label text on change (positive class)
     $switch.change(function () {
-        let $label = $("label[for='" + $(this).attr('id') + "']");
+        let $label = $("label[for='" + $(this).attr('id') + "']")
         const positive_class = ($(this).is(":checked") ? 1 : 0)
         $label.text("Positive class label: " + positive_class)
     })
 
     // Update slider label text on change (entropy threshold)
     $slider.on('input', function () {
-        let $label = $("label[for='" + $(this).attr('id') + "']");
+        let $label = $("label[for='" + $(this).attr('id') + "']")
         const threshold = $(this).val()
         $label.text("Entropy threshold: " + threshold)
     })
@@ -845,7 +861,7 @@ $(function () {
 
 
     // Cluster algorithm select listener (if something is selected, enable parameters)
-    $algorithm.on('change', setClusteringParameters);
+    $algorithm.on('change', setClusteringParameters)
 
     // Get clustering algorithm info & init algorithm selectpicker
     $.getJSON(
@@ -864,11 +880,15 @@ $(function () {
 
     // Ranking asc/desc switch
     $switch_rank.change(function () {
-        let $label = $("label[for='" + $(this).attr('id') + "']");
+        let $label = $("label[for='" + $(this).attr('id') + "']")
         const label_text = ($(this).is(":checked") ? "Descending" : "Ascending")
         $label.text(label_text)
         updateRankingChart()
     })
 
-});
+    // Export to pdf
+    $export_fair_chart.click({chart: $canv_fair[0], dimensions: [15, 15, 280, 170]}, exportChart)
+
+
+})
 
