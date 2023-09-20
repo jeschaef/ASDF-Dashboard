@@ -1,0 +1,32 @@
+{
+  "name": "asdf-dashboard",
+  "version": "1.0.0",
+  "description": "<img align=\"left\" width=\"80\" height=\"80\" src=\"https://github.com/jeschaef/ASDF-Dashboard/blob/f56f7876e7ecd49363bccd1b4048376e4854cc3d/app/static/logo.png\" alt=\"Project app icon\">",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeschaef/ASDF-Dashboard.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jeschaef/ASDF-Dashboard/issues"
+  },
+  "homepage": "https://github.com/jeschaef/ASDF-Dashboard#readme",
+  "dependencies": {
+    "canvas2svg": "^1.0.16",
+    "jspdf": "^2.5.1"
+  },
+  "devDependencies": {
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  }
+}

@@ -799,10 +799,22 @@ function exportChart(params) {
     const chartElement = params.data.chart
     console.log(chartElement)
     const image = chartElement.toDataURL('image/png', 1.0)
+    let width = chartElement.width
+    let height = chartElement.height
 
-    const pdf = new jsPDF('landscape', 'px', chartElement.width(), chartElement.height())
+    // Set orientation of the pdf context
+    if (width > height) {
+        pdf = new jsPDF('landscape', 'px', [width, height])
+    } else {
+        pdf = new jsPDF('portrait', 'px', [height, width])
+    }
+    console.log(width, height)
+
     const dimensions = params.data.dimensions
-    pdf.addImage(image, 'PNG', chartElement.width, chartElement.height)
+    width = pdf.internal.pageSize.getWidth()
+    height = pdf.internal.pageSize.getHeight()
+    console.log(width, height)
+    pdf.addImage(image, 'PNG', 0, 0, width, height)
     pdf.save('chart.pdf')
 }
 

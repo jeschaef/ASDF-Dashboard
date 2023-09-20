@@ -4,6 +4,10 @@ WORKDIR /app
 
 COPY ./requirements.txt requirements.txt
 
+COPY ./package.json package.json
+
+COPY ./webpack.config.js webpack.config.js
+
 ENV BUILD_DEPS="build-essential" APP_DEPS="curl libpq-dev"
 
 RUN apt-get update \
