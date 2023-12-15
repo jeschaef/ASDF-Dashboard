@@ -85,7 +85,8 @@ Adapt the [nginx configuration template](app/conf/nginx/nginx-template.conf) to 
 environment. To this end, copy it into a file named `nginx.conf`, which is located at 
 [the same folder](app/conf/nginx). The listening port and the server name have to be 
 set according to your host/domain, that will be pointed to the web service, and the 
-same value as the NGINX_PORT environment variable (in the `.env`-file).
+same value as the NGINX_PORT environment variable (in the `.env`-file) if used
+in debug mode.
 
 ```
 ...
@@ -94,6 +95,21 @@ server {
         server_name {your_domain_name};
         ...
 }
+...
+```
+
+Additionally, the [docker compose configuration](docker-compose.yml) has
+to be adapted in debug mode to make the web service accessible from the local
+machine. Change the ports configuration of the `nginx` service accordingly by 
+uncommenting the line and optionally modifying the host port number (here 80):
+
+```
+...
+nginx:
+    ...
+   # Use the ports configuration to make it accessible in debug mode
+   ports:
+     - "0.0.0.0:80:${NGINX_PORT}"
 ...
 ```
 

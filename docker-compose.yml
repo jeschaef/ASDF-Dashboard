@@ -57,8 +57,9 @@ services:
     build: ./app/conf/nginx
     env_file:
       - ".env"
-    ports:
-      - "0.0.0.0:80:${NGINX_PORT}"
+    # Use the ports configuration to make it accessible in debug mode
+#    ports:
+#      - "0.0.0.0:80:${NGINX_PORT}"
     depends_on:
       - web
     volumes:
