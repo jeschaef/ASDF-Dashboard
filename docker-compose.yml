@@ -63,11 +63,16 @@ services:
       - web
     volumes:
       - ./app/conf/nginx/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      - default
+      - proxy_nw
 
 volumes:
   redis: { }
 
 networks:
   default:
+    name: asdf_nw
+  proxy_nw:
     external: true
     name: proxy_nw
