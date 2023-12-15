@@ -1,5 +1,6 @@
 import logging
 
+import email_validator
 import pandas as pd
 
 from flask import redirect, url_for
@@ -91,7 +92,9 @@ class RegisterForm(RedirectForm):
                                                           message="Only alphanumeric characters and '_', '-' or '.' "
                                                                   "are allowed")
                                                    ])
-    email = StringField('Email', validators=[DataRequired(), Email(), Length(max=EMAIL_LENGTH)])
+    email = StringField('Email', validators=[DataRequired(),
+                                             Email(check_deliverability=False),   # just syntax check
+                                             Length(max=EMAIL_LENGTH)])
     password = PasswordField('Password', validators=[DataRequired(),
                                                      Length(min=MIN_PASSWORD_LENGTH, max=PASSWORD_LENGTH)])
     confirm = PasswordField('Verify password',
