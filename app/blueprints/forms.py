@@ -8,9 +8,8 @@ from flask_login import current_user
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from pandas.errors import ParserError, EmptyDataError
-from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Regexp
-from wtforms_components import StringField, Email, SelectField
+from wtforms import HiddenField, PasswordField, BooleanField, SubmitField, FileField, StringField, SelectField
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Regexp, Email
 
 from app.auth import verify_password
 from app.blueprints.util import get_redirect_target, is_safe_url, get_user_quota
